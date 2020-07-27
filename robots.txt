@@ -1,0 +1,2 @@
+User-agent: *
+Sitemap: https://evan-brass.github.io/sitemap.xml

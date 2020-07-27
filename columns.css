@@ -1,0 +1,45 @@
+html {
+	height: 100%;
+}
+body, html {
+	overflow-y: hidden;
+}
+@media(pointer: fine) {
+	body, html {
+		overflow-y: unset;
+	}
+}
+body {
+	height: 100%;
+	position: absolute;
+	column-width: 60ch;
+	column-gap: 3em;
+	column-rule: 1px solid currentColor;
+	column-fill: auto;
+	max-width: 70ch;
+	scroll-snap-type: x proximity;
+}
+body > * {
+	scroll-snap-stop: normal;
+}
+p {
+	orphans: 2;
+	widows: 2;
+}
+h1, h2, h3, h4, h5, h6 {
+	break-before: always;
+}
+@media(max-width: 500px) {
+	body {
+		column-gap: 2em;
+	}
+}
+body > header {
+	margin-top: 0;
+}
+header, footer, article:not(.single) {
+	/* break-inside: avoid; */
+}
+pre, code {
+	break-inside: auto;
+}

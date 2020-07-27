@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+
+		
+		<!-- <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"> -->
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+		
+		<meta name="description" content="Mediocre content about life and my technical interests.">
+
+		<title>
+	Introduction to Programming 3: Boolean’s, Logic, and Conditionals | Evan Brass
+</title>
+
+		
+		
+        <link rel="alternate" type="application/atom+xml" title="RSS" href="https://evan-brass.github.io/atom.xml">
+      	
+
+		<link rel="stylesheet" href="https://evan-brass.github.io/header-styles.css?h=f32af8e4d5340859779c444ba6293247402ff22cebcb36c0ef33011da8217686">
+		<!-- <link rel="stylesheet" href="https://evan-brass.github.io/columns.css?h=97233ec0acf61a7b00e81a82f9e24d423888edef1a742e3f4dec204c678574c4"> -->
+	</head>
+	<body>
+		<header>
+			
+				<h1><a href="https://evan-brass.github.io">EVAN BRASS</a></h1>
+				<p>Mediocre content about life and my technical interests.</p>
+				<nav>
+					
+					
+					
+						<a href="https://evan-brass.github.io/about/">About</a>
+					
+						<a href="https://evan-brass.github.io/log/">Log</a>
+					
+					
+					
+						
+						<a href="https://evan-brass.github.io/blog/">Blog</a>
+					
+						
+						<a href="https://evan-brass.github.io/projects/">Projects</a>
+					
+					
+				</nav>
+			
+		</header>
+		<main>
+			
+	<article class="single" itemscope itemtype="https://schema.org/Article">
+		<header>
+			<!-- TODO: Add article featured image -->
+			<h1 itemprop="headline">Introduction to Programming 3: Boolean’s, Logic, and Conditionals</h1>
+			<div itemprop="author" itemscope itemtype="https://schema.org/Person">
+				<meta itemprop="name" content="Evan Brass">
+			</div>
+			
+				<div>
+					Posted on <time itemprop="datePublished" datetime="2018-07-19T19:46:27Z">July 19, 2018</time>
+				</div>
+			
+			
+				<div itemprop="keywords">
+					
+						<a href="https://evan-brass.github.io/tags/javascript/">JavaScript</a>,
+						<a href="https://evan-brass.github.io/tags/tutorial/">Tutorial</a>
+				</div>
+			
+			
+			<p style="display: none;" itemprop="author" itemscope itemtype="https://schema.org/Person">
+				<span itemprop="name">Evan Brass</span>
+			</p>
+		</header>
+			
+		<div itemprop="articleBody">
+			<p>Till now, I’ve given you no method of telling the computer how to make decisions. You currently don’t have a Turing Complete understanding of JavaScript. Turing Complete means that a machine or language has the functionality required to compute anything that a Turing Machine can compute. We still won’t have a Turing Complete knowledge at the end of this section but we’ll be pretty close.</p>
+<p>The Boolean is a data type with two values, True and False. Boolean’s are a core component of logic. Logic spreads over both math and philosophy. Logic — implemented by electrical components — is what engineers use to build computers. The circuits that they design combine little logic gates together into circuits that can be represented by Boolean Expressions.</p>
+<p>Anyway, there are three fundamental logical operators: And, Or, and Not. We use something called a truth table to describe them. Each operator has two inputs and one output except the Not which has only one input. Look at the tables here:</p>
+<pre style="background-color:#2b303b;">
+<code><span style="color:#c0c5ce;">|          AND           |</span><span style="color:#c0c5ce;">
+|   A   |   B   | Output |</span><span style="color:#c0c5ce;">
+| True  | True  |  True  |</span><span style="color:#c0c5ce;">
+| True  | False |  False |</span><span style="color:#c0c5ce;">
+| False | True  |  False |</span><span style="color:#c0c5ce;">
+| False | False |  False |</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">
+|           OR           |</span><span style="color:#c0c5ce;">
+|   A   |   B   | Output |</span><span style="color:#c0c5ce;">
+| True  | True  |  True  |</span><span style="color:#c0c5ce;">
+| True  | False |  True  |</span><span style="color:#c0c5ce;">
+| False | True  |  True  |</span><span style="color:#c0c5ce;">
+| False | False |  False |</span><span style="color:#c0c5ce;">
+</span><span style="color:#c0c5ce;">
+|      Not       |</span><span style="color:#c0c5ce;">
+|   A   | Output |</span><span style="color:#c0c5ce;">
+| True  | False  |</span><span style="color:#c0c5ce;">
+| False | True   |</span><span style="color:#c0c5ce;">
+</span></code></pre>
+<p>The notation that we use in JavaScript (and most languages) for these operators are: &amp;&amp; (AND), || (OR), ! (Not). Once again, we can use parenthesis to indicate the order that we want these expressions to be evaluated. Ok, enough talk, time for some examples. Open your console and try these expressions:</p>
+<pre style="background-color:#2b303b;">
+<code><span style="color:#d08770;">true</span><span style="color:#c0c5ce;">;</span><span style="color:#c0c5ce;">
+</span><span style="color:#d08770;">false</span><span style="color:#c0c5ce;">;</span><span style="color:#c0c5ce;">
+</span><span style="color:#d08770;">true </span><span style="color:#c0c5ce;">&amp;&amp; </span><span style="color:#d08770;">false</span><span style="color:#c0c5ce;">; </span><span style="color:#65737e;">// This will be false</span><span style="color:#65737e;">
+</span><span style="color:#d08770;">true </span><span style="color:#c0c5ce;">|| </span><span style="color:#d08770;">false</span><span style="color:#c0c5ce;">; </span><span style="color:#65737e;">// This will be true</span><span style="color:#65737e;">
+</span><span style="color:#c0c5ce;">!</span><span style="color:#d08770;">true</span><span style="color:#c0c5ce;">;</span><span style="color:#c0c5ce;">
+!(</span><span style="color:#d08770;">true </span><span style="color:#c0c5ce;">&amp;&amp; </span><span style="color:#d08770;">true</span><span style="color:#c0c5ce;">) </span><span style="color:#65737e;">// NOT (true AND true)</span><span style="color:#65737e;">
+</span></code></pre>
+<p>Now let’s talk about equality. JavaScript has many comparing operators — less than, greater then, less than or equal to, greater than or equal to, equal to, and not equal to. Each of these operators will take numbers and return a boolean, but the last two will also take other data types. Try these:</p>
+<pre style="background-color:#2b303b;">
+<code><span style="color:#d08770;">4 </span><span style="color:#c0c5ce;">&lt; </span><span style="color:#d08770;">5</span><span style="color:#c0c5ce;">; </span><span style="color:#65737e;">// Less Than. True</span><span style="color:#65737e;">
+</span><span style="color:#d08770;">5 </span><span style="color:#c0c5ce;">&lt;= </span><span style="color:#d08770;">9</span><span style="color:#c0c5ce;">; </span><span style="color:#65737e;">// Less Than or Equal to. False</span><span style="color:#65737e;">
+</span><span style="color:#d08770;">11 </span><span style="color:#c0c5ce;">&gt; </span><span style="color:#d08770;">7</span><span style="color:#c0c5ce;">; </span><span style="color:#65737e;">// Greater Than. True</span><span style="color:#65737e;">
+</span><span style="color:#c0c5ce;">(</span><span style="color:#d08770;">7 </span><span style="color:#c0c5ce;">+ </span><span style="color:#d08770;">3</span><span style="color:#c0c5ce;">) &gt;= </span><span style="color:#d08770;">10</span><span style="color:#c0c5ce;">; </span><span style="color:#65737e;">// Greater Than or Equal to. True</span><span style="color:#65737e;">
+</span><span style="color:#d08770;">6 </span><span style="color:#c0c5ce;">== </span><span style="color:#d08770;">6</span><span style="color:#c0c5ce;">; </span><span style="color:#65737e;">// Equal to. True</span><span style="color:#65737e;">
+</span><span style="color:#c0c5ce;">Math.</span><span style="color:#96b5b4;">pow</span><span style="color:#c0c5ce;">(</span><span style="color:#d08770;">5</span><span style="color:#c0c5ce;">, </span><span style="color:#d08770;">2</span><span style="color:#c0c5ce;">) != </span><span style="color:#d08770;">25</span><span style="color:#c0c5ce;">; </span><span style="color:#65737e;">// Not Equal to. False</span><span style="color:#65737e;">
+</span><span style="color:#c0c5ce;">
+&quot;</span><span style="color:#a3be8c;">Hello World</span><span style="color:#c0c5ce;">&quot; == &#39;</span><span style="color:#a3be8c;">Hello World</span><span style="color:#c0c5ce;">&#39;; </span><span style="color:#65737e;">// True</span><span style="color:#65737e;">
+</span><span style="color:#c0c5ce;">`</span><span style="color:#a3be8c;">Hello World</span><span style="color:#c0c5ce;">` == &#39;</span><span style="color:#a3be8c;">Hello World</span><span style="color:#c0c5ce;">&#39;; </span><span style="color:#65737e;">// True</span><span style="color:#65737e;">
+</span><span style="color:#c0c5ce;">&#39;</span><span style="color:#a3be8c;">cat</span><span style="color:#c0c5ce;">&#39; != &#39;</span><span style="color:#a3be8c;">dog</span><span style="color:#c0c5ce;">&#39;; </span><span style="color:#65737e;">// True</span><span style="color:#65737e;">
+</span></code></pre>
+<p>We can combine functions, comparison, variables, and boolean operators for a more interesting example. Also I should mention that the // indicates a comment. Everything after the two forward slashes until the end of that line of code will be ignored by the computer. It’s a way of annotating your code for yourself and others.</p>
+<pre style="background-color:#2b303b;">
+<code><span style="color:#b48ead;">function </span><span style="color:#8fa1b3;">is_divisible_by_5</span><span style="color:#c0c5ce;">(x) {</span><span style="color:#c0c5ce;">
+	</span><span style="color:#b48ead;">return </span><span style="color:#c0c5ce;">((</span><span style="color:#bf616a;">x </span><span style="color:#c0c5ce;">% </span><span style="color:#d08770;">5</span><span style="color:#c0c5ce;">) == </span><span style="color:#d08770;">0</span><span style="color:#c0c5ce;">);</span><span style="color:#c0c5ce;">
+}</span><span style="color:#c0c5ce;">
+</span></code></pre>
+<p>This function takes the remainder of it’s parameter (x) when divided by 5 and tests to see if it is 0. If it is then the number is divisible by 5 and the equality test (==) will return true. Go ahead and call it with a few numbers.</p>
+<p>The last new information for this lesson is to perform operations based on whether or not a boolean expression is true or false. This is done using the if and else clauses. An if looks a bit like a function definition:</p>
+<pre style="background-color:#2b303b;">
+<code><span style="color:#c0c5ce;">if (&lt;boolean expression&gt;) {</span><span style="color:#c0c5ce;">
+	&lt;statements&gt;</span><span style="color:#c0c5ce;">
+}</span><span style="color:#c0c5ce;">
+</span></code></pre>
+<p>The statements inside the if’s block (blocks are statements inside of the squiggle braces: {…}) will only be executed if the if’s boolean expression is true. If you want to do one thing when is true and another when it’s false you use an if-else clause:</p>
+<pre style="background-color:#2b303b;">
+<code><span style="color:#c0c5ce;">if (&lt;boolean expression&gt;) {</span><span style="color:#c0c5ce;">
+	&lt;statements when true&gt;</span><span style="color:#c0c5ce;">
+} else {</span><span style="color:#c0c5ce;">
+	&lt;statements when false&gt;</span><span style="color:#c0c5ce;">
+}</span><span style="color:#c0c5ce;">
+</span></code></pre>
+<p>Let’s use this in a function. This one is for those people who’s favorite number is 8:</p>
+<pre style="background-color:#2b303b;">
+<code><span style="color:#b48ead;">function </span><span style="color:#8fa1b3;">guess_favorite</span><span style="color:#c0c5ce;">(number) {</span><span style="color:#c0c5ce;">
+	</span><span style="color:#b48ead;">if </span><span style="color:#c0c5ce;">(</span><span style="color:#bf616a;">number </span><span style="color:#c0c5ce;">== </span><span style="color:#d08770;">8</span><span style="color:#c0c5ce;">) {</span><span style="color:#c0c5ce;">
+	console.</span><span style="color:#96b5b4;">log</span><span style="color:#c0c5ce;">(&#39;</span><span style="color:#a3be8c;">You guessed correctly.</span><span style="color:#c0c5ce;">&#39;);</span><span style="color:#c0c5ce;">
+	</span><span style="color:#bf616a;">alert</span><span style="color:#c0c5ce;">(&#39;</span><span style="color:#a3be8c;">Congratulations!</span><span style="color:#c0c5ce;">&#39;);</span><span style="color:#c0c5ce;">
+	} </span><span style="color:#b48ead;">else </span><span style="color:#c0c5ce;">{</span><span style="color:#c0c5ce;">
+	console.</span><span style="color:#96b5b4;">log</span><span style="color:#c0c5ce;">(&#39;</span><span style="color:#a3be8c;">Sorry, </span><span style="color:#c0c5ce;">&#39; + </span><span style="color:#bf616a;">number </span><span style="color:#c0c5ce;">+ &#39;</span><span style="color:#a3be8c;"> is not my favorite number. Guess again.</span><span style="color:#c0c5ce;">&#39;);</span><span style="color:#c0c5ce;">
+	}</span><span style="color:#c0c5ce;">
+}</span><span style="color:#c0c5ce;">
+</span></code></pre>
+<p>This function combines a lot of different things that we’ve learned. It’s got printing, an if-else clause, and an equality test. Note that the else is always optional.</p>
+<p>Ok, usually when you’re programming you want to get something simple working and then start tinkering with it. Let’s add a way of telling people how close they are:</p>
+<pre style="background-color:#2b303b;">
+<code><span style="color:#b48ead;">function </span><span style="color:#8fa1b3;">guess_favorite</span><span style="color:#c0c5ce;">(number) {</span><span style="color:#c0c5ce;">
+	</span><span style="color:#65737e;">// By storing our favorite number in a variable we can change it in all the places quite easily... If that were to ever happen.</span><span style="color:#65737e;">
+	</span><span style="color:#b48ead;">const </span><span style="color:#bf616a;">favorite </span><span style="color:#c0c5ce;">= </span><span style="color:#d08770;">8</span><span style="color:#c0c5ce;">;</span><span style="color:#c0c5ce;">
+	</span><span style="color:#65737e;">// Check if they guessed correctly</span><span style="color:#65737e;">
+	</span><span style="color:#b48ead;">if </span><span style="color:#c0c5ce;">(</span><span style="color:#bf616a;">number </span><span style="color:#c0c5ce;">== </span><span style="color:#bf616a;">favorite</span><span style="color:#c0c5ce;">) {</span><span style="color:#c0c5ce;">
+	console.</span><span style="color:#96b5b4;">log</span><span style="color:#c0c5ce;">(&#39;</span><span style="color:#a3be8c;">You guessed correctly.</span><span style="color:#c0c5ce;">&#39;);</span><span style="color:#c0c5ce;">
+	</span><span style="color:#bf616a;">alert</span><span style="color:#c0c5ce;">(&#39;</span><span style="color:#a3be8c;">Congratulations!</span><span style="color:#c0c5ce;">&#39;);</span><span style="color:#c0c5ce;">
+	} </span><span style="color:#b48ead;">else </span><span style="color:#c0c5ce;">{</span><span style="color:#c0c5ce;">
+	</span><span style="color:#65737e;">// If they didn&#39;t then get the absolute value of the difference between their guess and our favorite</span><span style="color:#65737e;">
+	</span><span style="color:#b48ead;">let </span><span style="color:#bf616a;">difference </span><span style="color:#c0c5ce;">= Math.</span><span style="color:#96b5b4;">abs</span><span style="color:#c0c5ce;">(</span><span style="color:#bf616a;">number </span><span style="color:#c0c5ce;">- </span><span style="color:#bf616a;">favorite</span><span style="color:#c0c5ce;">);</span><span style="color:#c0c5ce;">
+	</span><span style="color:#65737e;">// If none of the following if/else if statments are true, then the default will be way off.</span><span style="color:#65737e;">
+	</span><span style="color:#b48ead;">let </span><span style="color:#bf616a;">closeness </span><span style="color:#c0c5ce;">= &#39;</span><span style="color:#a3be8c;">way off</span><span style="color:#c0c5ce;">&#39;;</span><span style="color:#c0c5ce;">
+	</span><span style="color:#b48ead;">if </span><span style="color:#c0c5ce;">(</span><span style="color:#bf616a;">difference </span><span style="color:#c0c5ce;">&lt; </span><span style="color:#d08770;">3</span><span style="color:#c0c5ce;">) {</span><span style="color:#c0c5ce;">
+		</span><span style="color:#bf616a;">closeness </span><span style="color:#c0c5ce;">= &#39;</span><span style="color:#a3be8c;">really close</span><span style="color:#c0c5ce;">&#39;;</span><span style="color:#c0c5ce;">
+	} </span><span style="color:#b48ead;">else if </span><span style="color:#c0c5ce;">(</span><span style="color:#bf616a;">difference </span><span style="color:#c0c5ce;">&lt; </span><span style="color:#d08770;">10</span><span style="color:#c0c5ce;">) {</span><span style="color:#c0c5ce;">
+		</span><span style="color:#bf616a;">closeness </span><span style="color:#c0c5ce;">= &#39;</span><span style="color:#a3be8c;">pretty close</span><span style="color:#c0c5ce;">&#39;;</span><span style="color:#c0c5ce;">
+	} </span><span style="color:#b48ead;">else if </span><span style="color:#c0c5ce;">(</span><span style="color:#bf616a;">difference </span><span style="color:#c0c5ce;">&lt; </span><span style="color:#d08770;">20</span><span style="color:#c0c5ce;">) {</span><span style="color:#c0c5ce;">
+		</span><span style="color:#bf616a;">closeness </span><span style="color:#c0c5ce;">= &#39;</span><span style="color:#a3be8c;">not very close</span><span style="color:#c0c5ce;">&#39;;</span><span style="color:#c0c5ce;">
+	}</span><span style="color:#c0c5ce;">
+	</span><span style="color:#65737e;">// Give them a nice message</span><span style="color:#65737e;">
+	</span><span style="color:#c0c5ce;">console.</span><span style="color:#96b5b4;">log</span><span style="color:#c0c5ce;">(&#39;</span><span style="color:#a3be8c;">Sorry, </span><span style="color:#c0c5ce;">&#39; + </span><span style="color:#bf616a;">number </span><span style="color:#c0c5ce;">+ &quot;</span><span style="color:#a3be8c;"> is not my favorite number. You were </span><span style="color:#c0c5ce;">&quot; + </span><span style="color:#bf616a;">closeness </span><span style="color:#c0c5ce;">+ &quot;</span><span style="color:#a3be8c;">. Guess again.</span><span style="color:#c0c5ce;">&quot;);</span><span style="color:#c0c5ce;">
+	}</span><span style="color:#c0c5ce;">
+}</span><span style="color:#c0c5ce;">
+</span></code></pre>
+<p>That’s a lot of code. Hopefully it is understandable. There’s lots of other features that we could use to make it look cleaner but this works for now.</p>
+<hr />
+<p>Time for the truthiness talk. JavaScript has very weak truthiness checks. This means that things like strings, numbers other than zero, and object references all “count” as a true value in both the boolean expressions we wrote earlier and in an if clause. The few values that count as a false include false, 0, null, and undefined (I’ll explain later what null and undefined are). Worse yet, if you asked “0 == false” then JavaScript would say true. This is another place where JavaScript let’s us hang ourselves. That said, from what I’ve seen that doesn’t happen very often. When it does, you can replace equals (==) or not equal (!=) with a strict equals (===) or strict not equal (!==). Like I said, I don’t think you’ll find a need to do that during these examples and I think it is cleaner to use non-strict equality tests in all the places that you don’t actually need one, but it’s something you should know.</p>
+<hr />
+<p>Next up will likely be looping/recursion. Once you have those, you’ll be a Turing Complete JavaScript programmer. Everything after that is quality of life improvements. Probably after that we’d talk about objects, arrays and references.</p>
+
+		</div>
+	</article>
+
+		</main>
+		<footer>
+					
+					<a href="https://twitter.com/evan_brass">Twitter</a>
+				
+					and
+					<a href="https://github.com/evan-brass">GitHub</a>
+				</footer>
+    </body>
+</html>
