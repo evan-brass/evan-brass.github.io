@@ -1,0 +1,151 @@
+* {
+	margin: 0;
+	scroll-behavior: smooth;
+}
+p {
+	/* orphans: 2;
+	widows: 2; */
+	text-indent: 4ch;
+}
+p + p, article h1 {
+	margin-top: 1em;
+	margin-block-start: 1em;
+}
+html.columns {
+	overflow: hidden;
+	width: 100%;
+	height: 100%;
+}
+html.columns body {
+	column-width: 40ch;
+	height: calc(100% - 6em);
+	width: calc(100% - 6em);
+	position: absolute;
+	column-gap: 3em;
+	column-rule: 1px solid currentColor;
+	column-fill: auto;
+	overflow-y: hidden;
+}
+html:not(.columns) body {
+	max-width: calc(60ch + 6em);
+	margin: 0 auto;
+}
+.columns pre {
+	break-inside: avoid-column;
+}
+html:not(.columns) body > header {
+	border-left: 2px solid currentColor;
+	border-right: 2px solid currentColor;
+}
+
+body {
+	--foreground-color: #111;
+	--background-color: #eee;
+	--link-color: #E76F51;
+}
+@media(prefers-color-scheme: light) {}
+@media(prefers-color-scheme: dark) {
+	body {
+		--foreground-color: #ccc;
+		--background-color: #111;
+		--link-color: #C44A2B;
+	}
+}
+
+body {
+	font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+	box-sizing: border-box;
+	transition: padding 0.3s;
+	padding: 3em;
+	background-color: var(--background-color);
+	color: var(--foreground-color);
+	
+	font-size: 16px;
+	line-height: 1.5;
+	letter-spacing: 0.4pt;
+}
+@media(max-width: 500px) {
+	body {
+		padding: 1em;
+	}
+	html.columns body {
+		height: calc(100% - 2em);
+		width: calc(100% - 2em);
+	}
+}
+
+body > header {
+	padding: 1em;
+	margin-bottom: 1em;
+	margin-block-end: 1em;
+	text-align: center;
+}
+.single header {
+	margin-bottom: 1em;
+	margin-block-end: 1em;
+}
+article + article {
+	margin-top: 1em;
+	margin-block-start: 1em;
+}
+h1, h2, h3, h4, h5, h6 {
+	font-family: Cambria, Cochin, Georgia, Times, "Times New Roman", serif;
+}
+h1 a, nav a {
+	text-decoration: none;;
+}
+.separator {
+	text-align: center;
+	font-variant-caps: small-caps;
+}
+article h1 {
+	font-variant: small-caps;
+	font-variant-caps: titling-caps;
+}
+time {
+	font-variant: small-caps;
+}
+header, footer {
+	break-inside: avoid-column;
+}
+nav {
+	font-variant: small-caps;
+}
+a {
+	color: var(--link-color);
+	font-weight: bold;
+	line-break: loose;
+}
+:target {
+	border-bottom: 1px solid var(--link-color);
+	border-block-end: 1px solid var(--link-color);
+}
+.toc {
+	border-top: 1px solid currentColor;
+	border-bottom: 1px solid currentColor;
+	padding: 1em;
+	margin: 1em 0;
+}
+ul, ol {
+	padding: 0;
+	margin: 1em 0;
+}
+nav ul {
+	margin: 0;
+}
+li {
+	list-style: square outside;
+	margin-left: 1.5em;
+}
+
+pre {
+	overflow-x: auto;
+	break-inside: avoid-column;
+}
+img {
+	max-width: 100%;
+	display: block;
+}
+nav.paginator {
+	text-align: center;
+}

@@ -1,0 +1,52 @@
+{% extends "index.html" %}
+
+{% block title %}
+	{{ page.title }} | {{ super() }}
+{% endblock title %}
+
+{% block content %}
+	<article class="single" itemscope itemtype="https://schema.org/BlogPosting">
+		<header>
+			<h1 itemprop="headline">{{ page.title }}</h1>
+			{% if page.date %}
+				<div>
+					Posted on <time itemprop="datePublished" datetime="{{ page.date }}">{{ page.date | date(format="%B %e, %Y") }}</time>
+				</div>
+			{% endif %}
+			{% if page.taxonomies.tags %}
+				<div itemprop="keywords">
+					{% for tag in page.taxonomies.tags %}
+						<a href="{{ get_taxonomy_url(kind="tags", name=tag) }}">{{ tag }}</a>
+						{%- if tag != page.taxonomies.tags | last -%}
+							,
+						{%- endif -%}
+					{% endfor %}
+				</div>
+			{% endif %}
+		</header>
+		<div itemprop="articleBody">
+			{% if page.toc | length > 0 %}
+				<nav class="toc">
+					Contents
+					<ul>
+						{% for h1 in page.toc %}
+							<li>
+								<a href="{{h1.permalink | safe}}">{{ h1.title }}</a>
+								{% if h1.children %}
+									<ul>
+										{% for h2 in h1.children %}
+											<li>
+												<a href="{{h2.permalink | safe}}">{{ h2.title }}</a>
+											</li>
+										{% endfor %}
+									</ul>
+								{% endif %}
+							</li>
+						{% endfor %}
+					</ul>
+				</nav>
+			{% endif %}
+			{{ page.content | safe }}
+		</div>
+	</article>
+{% endblock content %}

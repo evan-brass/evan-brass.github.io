@@ -1,0 +1,10 @@
+{% extends "index.html" %}
+{% import "snippets.html" as snippets %}
+
+{% block content %}
+	<a href="{{ get_url(path=taxonomy.name) }}">&xlarr; All Tags</a>
+	<h1>{{ term.name }}</h1>
+	{% for page in term.pages %}
+		{{ snippets::article_preview(page=page) }}
+	{% endfor %}
+{% endblock content %}

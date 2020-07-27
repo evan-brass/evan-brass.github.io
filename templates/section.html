@@ -1,0 +1,39 @@
+{% extends "index.html" %}
+{% import "snippets.html" as snippets %}
+
+{% block title %}
+	{{ section.title }}{% if paginator and paginator.current_index != 1 %} - Page {{ paginator.current_index }}{% endif %} | {{ super() }}
+{% endblock title %}
+
+{% block description %}
+	{{ section.description }}
+{% endblock description %}
+
+{% block content %}
+	{{ section.content | safe }}
+
+	{% if pages %}
+		{% for page in pages %}
+			{{ snippets::article_preview(page=page) }}
+		{% endfor %}
+	{% endif %}
+	{% if paginator %}
+		{% for page in paginator.pages %}
+			{{ snippets::article_preview(page=page) }}
+		{% endfor %}
+	{% endif %}
+	{% if not pages and not paginator %}
+		<p style="text-align: center;">
+			There's nothing here yet.<br>
+			But when there is I'm sure it will be great!
+		</p>
+	{% endif %}
+{% endblock content %}
+
+{% block footer %}
+	{% if paginator %}
+		{{ snippets::pagination_nav(paginator=paginator) }}
+	{% endif %}
+
+	{{ super() }}
+{% endblock footer %}

@@ -1,0 +1,72 @@
+{% import "snippets.html" as snippets %}
+
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+	<head>
+		<meta charset="utf-8">
+
+		{# Enable Responsivenes #}
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+		{# SEO Stuff #}
+		<meta name="description" content="{% block description %}{{ config.description }}{% endblock description %}">
+
+		<title>{% block title %}{{ config.title }}{% endblock title %}</title>
+
+		
+		{% if config.generate_feed %}
+        <link rel="alternate" type={% if config.feed_filename == "atom.xml" %}"application/atom+xml"{% else %}"application/rss+xml"{% endif %} title="RSS" href="{{ get_url(path=config.feed_filename) | safe }}">
+      	{% endif %}
+
+		<link rel="stylesheet" href="{{ get_url(path="header-styles.css", trailing_slash=false, cachebust=true) | safe }}">
+		{# <style>{{ load_data(path="static/header-styles.css") | safe }}</style> #}
+	</head>
+	<body>
+		<header>
+			{% block header %}
+				<h1><a href="{{ config.base_url }}">{{ config.title | upper }}</a></h1>
+				<p>{{ config.description }}</p>
+				<nav>
+					{% set root_section = get_section(path="_index.md") %}
+					{# List top-level pages: #}
+					{% for page in root_section.pages %}
+						<a href="{{ page.permalink }}">{{ page.title }}</a>
+					{% endfor %}
+					{# List top-level sections #}
+					{% for sub_path in root_section.subsections %}
+						{% set section = get_section(path=sub_path) %}
+						<a href="{{ section.permalink }}">{{ section.title }}</a>
+					{% endfor %}
+					{% if config.extra.navigation %}
+						{% for item in config.extra.navigation %}
+							<a href="{{ item.url }}">{{ item.name }}</a>
+						{% endfor %}
+					{% endif %}
+				</nav>
+			{% endblock header %}
+		</header>
+		<main>
+			{% block content %}
+				{{ section.content }}
+
+				{% for sub_path in section.subsections %}
+					{% set subsection = get_section(path=sub_path) %}
+					
+					<h1 class="separator">{{ subsection.title | title }}:</h1>
+					
+					{% if subsection.pages %}
+						{% for page in subsection.pages | slice(end=3) %}
+							{{ snippets::article_preview(page=page) }}
+						{% endfor %}
+					{% endif %}
+				{% endfor %}
+			{% endblock content %}
+		</main>
+		<footer>
+			{%- block footer -%}
+				
+			{%- endblock footer -%}
+		</footer>
+		{# __tera_context #}
+    </body>
+</html>

@@ -1,0 +1,36 @@
+{% macro article_preview(page) %}
+	<article  itemscope itemtype="https://schema.org/BlogPosting">
+		<header>
+			<h1 itemprop="headline"><a itemprop="url" href="{{ get_url(path=page.path) }}">{{ page.title }}</a></h1>
+			{% if page.date %}
+				<time datetime="{{ page.date }}">{{ page.date | date(format="%B %e, %Y") }}</time>
+			{%- endif -%}
+			{%- if page.date and page.reading_time %} &ndash; {% endif -%}
+			{%- if page.reading_time -%}
+				<span style="font-variant: small-caps;">{{ page.reading_time }} min read</span>
+			{% endif %}
+		</header>
+		<p itemprop="abstract">
+			{% if page.summary %}
+				{{ page.summary }}
+			{% else %}
+				{{ page.content | striptags | truncate(length = 228) }}
+			{% endif %}
+		</p>
+	</article>
+{% endmacro %}
+
+{% macro pagination_nav(paginator) %}
+	{% if paginator.number_pagers > 1 %}
+	<nav class="paginator">
+		Page
+		{% for page_index in range(start=1, end=paginator.number_pagers + 1) %}
+			{% if page_index != paginator.current_index %}
+				<a href="{{ paginator.base_url ~ page_index}}">{{ page_index }}</a>
+			{% else %}
+				{{ page_index }}
+			{% endif %}
+		{% endfor %}
+	</nav>
+	{% endif %}
+{% endmacro %}
