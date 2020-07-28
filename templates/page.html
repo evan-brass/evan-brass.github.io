@@ -24,7 +24,6 @@
 				</div>
 			{% endif %}
 		</header>
-		<div itemprop="articleBody">
 			{% if page.toc | length > 0 %}
 				<nav class="toc">
 					Contents
@@ -46,6 +45,7 @@
 					</ul>
 				</nav>
 			{% endif %}
+		<div itemprop="articleBody">
 			{{ page.content | safe }}
 		</div>
 	</article>
