@@ -66,7 +66,10 @@
 		</main>
 		<footer>
 			{%- block footer -%}
-				
+				{% for social in config.extra.social %}
+					{% if social == config.extra.social | last %}and{% endif %}
+					<a href="{{ social.url | safe }}">{{ social.name }}</a>
+				{% endfor %}
 			{%- endblock footer -%}
 		</footer>
 		{# __tera_context #}

@@ -74,12 +74,20 @@ body {
 	}
 }
 
+body > header, body > footer {
+	margin: 1em 0;
+}
 body > header {
 	padding: 1em;
-	margin-bottom: 1em;
-	margin-block-end: 1em;
 	text-align: center;
+	border-left: 2px solid currentColor;
+	border-right: 2px solid currentColor;
 }
+body > footer {
+	padding: 1em 0;
+	border-top: 2px solid currentColor;
+}
+
 .single header {
 	margin-bottom: 1em;
 	margin-block-end: 1em;

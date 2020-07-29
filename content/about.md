@@ -6,4 +6,4 @@ My name is Evan Brass.  I like to think of myself as a web developer - although 
 
 In addition to programming, I've dabbled in knitting, soap making, and sourdough bread.  I shave with a double edged safety razor because it's cheaper and requires less single use plastic.
 
-If you discover that we are interested in some of the same things then please let me know: [@evan_brass](https://twitter.com/evan_brass)
+If you discover that we are interested in some of the same things then please let me know!
