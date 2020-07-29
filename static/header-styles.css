@@ -7,25 +7,29 @@ p {
 	widows: 2; */
 	text-indent: 4ch;
 }
-p + p, article h1 {
+p + p, article h1, article h2, article h3, article h4, article h5, article h6 {
 	margin-top: 1em;
 }
 body {
 	max-width: calc(60ch + 6em);
 	margin: 0 auto;
+	tab-size: 4; /* TODO: Let users customize their tab-size */
 }
 
 body {
-	--foreground-color: #111;
 	--background-color: #eee;
-	--link-color: #E76F51;
+	--foreground-color: #111;
+	--code-background: #D4D7ED;
+	--link-color: #5d72d8;
 }
 @media(prefers-color-scheme: light) {}
 @media(prefers-color-scheme: dark) {
+	/* TODO: Add menu to control light/dark mode */
 	body {
-		--foreground-color: #ccc;
 		--background-color: #111;
-		--link-color: #C44A2B;
+		--foreground-color: #ccc;
+		--code-background: #2E3760;
+		--link-color: #7F8EDC;
 	}
 }
 
@@ -116,6 +120,15 @@ li {
 pre {
 	overflow-x: auto;
 	break-inside: avoid-column;
+	line-height: 1;
+}
+pre code {
+	background-color: unset;
+}
+code {
+	font-size: 14px;
+	font-family: monospace;
+	background-color: var(--code-background);
 }
 img {
 	max-width: 100%;
