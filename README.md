@@ -43,7 +43,7 @@ Building site...
 Done in 306ms.
 ```
 
-# Building / Publishing:
+## Building / Publishing:
 1. Make your changes.
 2. Run `zola build` from the root directory until it builds successfully
 3. Change into the public folder `cd public`
