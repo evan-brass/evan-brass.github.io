@@ -1,6 +1,5 @@
 +++
 title = "About"
-weight = 10
 +++
 My name is Evan Brass.  I like to think of myself as a web developer - although this is the only real website I have.  Most of my web development time is spent working on little web-based doodads.  There should be a projects section around here somewhere that talks about what I've made, how I made it, and what inspired me to work on it.
 
