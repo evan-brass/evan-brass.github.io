@@ -1,9 +1,9 @@
 {% macro article_preview(page) %}
-	<article  itemscope itemtype="https://schema.org/BlogPosting">
+	<article itemscope itemtype="https://schema.org/Article">
 		<header>
-			<h1 itemprop="headline"><a itemprop="url" href="{{ get_url(path=page.path) | safe }}">{{ page.title }}</a></h1>
+			<h1 itemprop="headline"><a itemprop="mainEntityOfPage" href="{{ get_url(path=page.path) | safe }}">{{ page.title }}</a></h1>
 			{% if page.date %}
-				<time datetime="{{ page.date }}">{{ page.date | date(format="%B %e, %Y") }}</time>
+				<time itemprop="datePublished" datetime="{{ page.date }}">{{ page.date | date(format="%B %e, %Y") }}</time>
 			{%- endif -%}
 			{%- if page.date and page.reading_time %} &ndash; {% endif -%}
 			{%- if page.reading_time -%}

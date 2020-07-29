@@ -5,9 +5,12 @@
 {% endblock title %}
 
 {% block content %}
-	<article class="single" itemscope itemtype="https://schema.org/BlogPosting">
+	<article class="single" itemscope itemtype="https://schema.org/Article">
 		<header>
+			<!-- TODO: Add article featured image -->
 			<h1 itemprop="headline">{{ page.title }}</h1>
+			<span itemprop="author" content="{{ page.extra.author | default(value=config.extra.author) | default(value="Anonymous") | safe }}"></span>
+			<span itemprop="publisher" content="{{ config.extra.publisher | default(value=config.base_url) | safe }}"></span>
 			{% if page.date %}
 				<div>
 					Posted on <time itemprop="datePublished" datetime="{{ page.date }}">{{ page.date | date(format="%B %e, %Y") }}</time>
@@ -23,6 +26,10 @@
 					{% endfor %}
 				</div>
 			{% endif %}
+			{% set author = page.extra.author | default(value=config.extra.author) | default(value="Anonymous") %}
+			<p style="display: none;" itemprop="author" itemscope itemtype="https://schema.org/Person">
+				<span itemprop="name">{{ author }}</span>
+			</p>
 		</header>
 			{% if page.toc | length > 0 %}
 				<nav class="toc">
