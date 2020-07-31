@@ -1,7 +1,9 @@
 {% import "snippets.html" as snippets %}
 
 <!DOCTYPE html>
-<html lang="{{ lang }}">
+<html
+	{%- if lang %} lang="{{ lang }}"{% endif -%}
+>
 	<head>
 		<meta charset="utf-8">
 
