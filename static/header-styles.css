@@ -121,6 +121,7 @@ pre {
 	overflow-x: auto;
 	break-inside: avoid-column;
 	line-height: 1;
+	padding: 0.5em; /* Trying to remove vertical scroll bars which showed up after adding line-height */
 }
 pre code {
 	background-color: unset;
