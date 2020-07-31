@@ -1,6 +1,7 @@
 +++
 title = "Building this Site"
 date = 2020-07-30
+weight = 1
 draft = true
 
 +++
