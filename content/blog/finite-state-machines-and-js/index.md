@@ -23,16 +23,16 @@ The arrow into the Pending state tells us that this is the initial state. What m
 
 Back to the point, let’s look at a simple async function:
 ```javascript
-    function delay(ms) {
-    	return new Promise(resolve => setTimeout(resolve, ms));
-    }
-    async function Example1() {
-    	console.log('Transition 1');
-    	await delay(1000); // State 1
-    	console.log('Transition 2');
-    	await delay('1000'); // State 2
-    	console.log('Transition 3');
-    }
+function delay(ms) {
+	return new Promise(resolve => setTimeout(resolve, ms));
+}
+async function Example1() {
+	console.log('Transition 1');
+	await delay(1000); // State 1
+	console.log('Transition 2');
+	await delay('1000'); // State 2
+	console.log('Transition 3');
+}
 ```
 
 If we draw a state diagram for this code we would get this:
@@ -48,23 +48,23 @@ Here’s the recipe for constructing the state diagram for an async function:
 
 This last step shows us that we can have a state-machine within another state-machine. Our async function is running within a Promise. Sub state machines are the basis for managing complexity in our state machines. As a system grows in complexity you can start grouping states implemented in other async functions. You may also find that two machines should actually run in parallel. Managing those is often where you will want to use the Promise combinators ([https://v8.dev/features/promise-combinators](https://v8.dev/features/promise-combinators "https://v8.dev/features/promise-combinators")). Here’s an example that uses the Promise.all combinator:
 ```javascript
-    function getImage(url) {
-    	return new Promise((resolve, reject) => {
-    		const image = new Image();
-    		image.onload = resolve.bind(image);
-    		image.onerror = reject;
-    		image.src = url;
-    	});
-    }
-    async function Example2() {
-    	const imageList = await fetch('url').then(response => response.json());
-    	const convertedImages = await Promise.all(imageList.map(async imageUrl => {
-    		const image = await getImage(imageUrl);
-    		const result = await makeGrayscale(image);
-    		return result;
-    	}));
-    	return convertedImages;
-    }
+function getImage(url) {
+	return new Promise((resolve, reject) => {
+		const image = new Image();
+		image.onload = resolve.bind(image);
+		image.onerror = reject;
+		image.src = url;
+	});
+}
+async function Example2() {
+	const imageList = await fetch('url').then(response => response.json());
+	const convertedImages = await Promise.all(imageList.map(async imageUrl => {
+		const image = await getImage(imageUrl);
+		const result = await makeGrayscale(image);
+		return result;
+	}));
+	return convertedImages;
+}
 ```
 
 And its state diagram:
@@ -77,67 +77,67 @@ DOM Nodes are finite state machines that predate Promises and in the coming era 
 
 First is listening to outside events. This is a fairly simple process. You may be able to think of a better way of doing this but here’s my implementation:
 ```javascript
-    function listenOnce(el, event) {
-    	return new Promise(resolve => el.addEventListener(event, resolve, {once: true}));
-    }
-    
-    async function* listen(el, event) {
-    	const differed = {
-    		callbacks: [],
-    		resolve(value) {
-    			this.callbacks.forEach(func => func(value));
-    			this.callbacks.length = 0;
-    		},
-    		then(callback) {
-    			this.callbacks.push(callback);
-    		}
-    	};
-    	const handler = e => {
-    		differed.resolve(e);
-    	}
-    	try {
-    		el.addEventListener(event, handler);
-    		while(1) {
-    			yield await differed;
-    		}
-    	} finally {
-    		el.removeEventListener(event, handler);
-    	}
-    }
+function listenOnce(el, event) {
+	return new Promise(resolve => el.addEventListener(event, resolve, {once: true}));
+}
+
+async function* listen(el, event) {
+	const differed = {
+		callbacks: [],
+		resolve(value) {
+			this.callbacks.forEach(func => func(value));
+			this.callbacks.length = 0;
+		},
+		then(callback) {
+			this.callbacks.push(callback);
+		}
+	};
+	const handler = e => {
+		differed.resolve(e);
+	}
+	try {
+		el.addEventListener(event, handler);
+		while(1) {
+			yield await differed;
+		}
+	} finally {
+		el.removeEventListener(event, handler);
+	}
+}
 ```
 
 You can see my not quite conforming differed implementation above. These two functions will let you either await a single event being fired (a button click for example) or iterating over multiple events (perhaps the input event on an input element).
 
 What about properties? I was doing some Android development and learned about the LiveData class which is fairly easy to implement in JavaScript.
 ```javascript
-    class LiveData {
-    	constructor() {
-    		this.waiters = [];
-    	}
-    	set value(newValue) {
-    		this._value = newValue;
-    		for (const callback of this.waiters) {
-    			callback(newValue);
-    		}
-    		this.waiters.length = 0;
-    	}
-    	get value() {
-    		return this._value;
-    	}
-    	then(callback) {
-    		this.waiters.push(callback);
-    	}
-    	async *[Symbol.asyncIterator]() {
-    		while (true) {
-    			const lastIssued = this._value;
-    			yield lastIssued;
-    			if (this._value == lastIssued) {
-    				// If we're caught up then wait for an update
-    				await this;
-    			}
-    		}
-    	}
-    }
+class LiveData {
+	constructor() {
+		this.waiters = [];
+	}
+	set value(newValue) {
+		this._value = newValue;
+		for (const callback of this.waiters) {
+			callback(newValue);
+		}
+		this.waiters.length = 0;
+	}
+	get value() {
+		return this._value;
+	}
+	then(callback) {
+		this.waiters.push(callback);
+	}
+	async *[Symbol.asyncIterator]() {
+		while (true) {
+			const lastIssued = this._value;
+			yield lastIssued;
+			if (this._value == lastIssued) {
+				// If we're caught up then wait for an update
+				await this;
+			}
+		}
+	}
+}
 ```
 
 This class let’s you iterate over a value that can change. It makes sure that you have the most up to date value even if you don’t request the next value immediately. To make it back into a property would take a setter / getter pair on the object that you want the property on.
@@ -150,26 +150,26 @@ There’s one kind of input that isn’t easy to make async: abort or cancellati
 
 What this means is that if you need something that is cancelable, you either have to be really careful and use something like Promise.race with your cancel differed and then do some cleanup perhaps using the [AbortController](https://developer.mozilla.org/en-US/docs/Web/API/AbortController/abort) or you can use something that can be cancelled: generators. Iterators have a return method which when implemented by a generator acts as though the statement after the previous yield was a return statement. The only code that can run after a return statement is a finally block. If you’re writing an async generator then the return function will only take effect at the next yield so you have to keep yielding to check if you’ve been cancelled. To make it fully cancelable we can’t use await which means sticking to a normal generator. To then make it async we can yield the promise we would have awaited and then the caller has to call next with the value that the promise resolved with or call throw if the promise threw an error. I’ll show you my implementation for a simple cancelable setup. You can find another example of this technique (it does a slightly different thing) here: [https://dev.to/chromiumdev/cancellable-async-functions-in-javascript-5gp7](https://dev.to/chromiumdev/cancellable-async-functions-in-javascript-5gp7 "https://dev.to/chromiumdev/cancellable-async-functions-in-javascript-5gp7")
 ```javascript
-    function cancelable(instance) {
-    	const result = (async () => {
-    		let step = instance.next();
-    		while(1) {
-    			const {value, done} = step;
-    			if (done) {
-    				return value;
-    			} else {
-    				try {
-    					const result = await value;
-    					step = instance.next(result);
-    				} catch(err) {
-    					step = instance.throw(err);
-    				}
-    			}
-    		}
-    	})();
-    	result.cancel = () => instance.return();
-    	return result;
-    }
+function cancelable(instance) {
+	const result = (async () => {
+		let step = instance.next();
+		while(1) {
+			const {value, done} = step;
+			if (done) {
+				return value;
+			} else {
+				try {
+					const result = await value;
+					step = instance.next(result);
+				} catch(err) {
+					step = instance.throw(err);
+				}
+			}
+		}
+	})();
+	result.cancel = () => instance.return();
+	return result;
+}
 ```
 
 What this is doing is taking an iterator that yields promises (the ones that it otherwise would have awaited) and then awaits the promises for the generator feeding the result back in later (including errors that might be thrown by the promise).
@@ -178,29 +178,29 @@ What this is doing is taking an iterator that yields promises (the ones that it 
 
 You might use it like this:
 ```javascript
-    function* testHelper() {
-    	console.log('Entering Helper');
-    	yield delay(1000); // State H-1
-    	console.log('Helper: Transition 1');
-    	yield delay(1000); // State H-2
-    	console.log('Helper: Transition 2');
-    	return 5;
-    }
-    function* test() {
-    	try {
-    		console.log('About to call testHelper');
-    		const value = yield* testHelper(); // State T-1
-    		console.log(`Got ${value} from testHelper`);
-    	} finally {
-    		console.log('starting the finally');
-    		yield delay(1000); // State T-2
-    		console.log('finishing the finally');
-    	}
-    	return 'success';
-    }
-    const a = cancelable(test());
-    a.then(result => console.log('cancelable resolved with', result));
-    // a.cancel() to cancel the machine at any time
+function* testHelper() {
+	console.log('Entering Helper');
+	yield delay(1000); // State H-1
+	console.log('Helper: Transition 1');
+	yield delay(1000); // State H-2
+	console.log('Helper: Transition 2');
+	return 5;
+}
+function* test() {
+	try {
+		console.log('About to call testHelper');
+		const value = yield* testHelper(); // State T-1
+		console.log(`Got ${value} from testHelper`);
+	} finally {
+		console.log('starting the finally');
+		yield delay(1000); // State T-2
+		console.log('finishing the finally');
+	}
+	return 'success';
+}
+const a = cancelable(test());
+a.then(result => console.log('cancelable resolved with', result));
+// a.cancel() to cancel the machine at any time
 ```
 
 Thinking about this approach, it’s quite like the Futures implementation in Rust. In Rust a Future is polled and when it can no longer proceed it makes sure that something will tell the runtime to wake up the future by polling it again. In our case, the runtime is the cancellable and when the promise resolves it knows that it can resume that generator. This takes care of the cancellability problem and as you can see, you can even have async code in the finally block meaning that you can do async tasks during cleanup.
