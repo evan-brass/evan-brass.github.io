@@ -16,8 +16,8 @@
 {% block content %}
 	{{ section.content | safe }}
 
-	{% if pages %}
-		{% for page in pages %}
+	{% if section.pages %}
+		{% for page in section.pages %}
 			{{ snippets::article_preview(page=page) }}
 		{% endfor %}
 	{% endif %}
@@ -26,7 +26,7 @@
 			{{ snippets::article_preview(page=page) }}
 		{% endfor %}
 	{% endif %}
-	{% if not pages and not paginator %}
+	{% if not section.pages and not paginator %}
 		<p style="text-align: center;">
 			There's nothing here yet.<br>
 			But when there is I'm sure it will be great!
