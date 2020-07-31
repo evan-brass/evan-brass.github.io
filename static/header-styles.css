@@ -48,6 +48,7 @@ body {
 @media(max-width: 500px) {
 	body {
 		padding: 1em;
+		tab-size: 2;
 	}
 }
 
@@ -123,9 +124,9 @@ li {
 
 pre {
 	overflow-x: auto;
-	break-inside: avoid-column;
 	line-height: 1;
 	padding: 0.5em; /* Trying to remove vertical scroll bars which showed up after adding line-height */
+	white-space: pre-wrap;
 }
 pre code {
 	background-color: unset;
