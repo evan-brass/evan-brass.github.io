@@ -12,9 +12,9 @@
 		</header>
 		<p itemprop="abstract">
 			{% if page.summary %}
-				{{ page.summary | striptags }}
+				{{ page.summary | striptags | safe }}
 			{% else %}
-				{{ page.content | striptags | truncate(length = 228) }}
+				{{ page.content | striptags | truncate(length = 228) | safe }}
 			{% endif %}
 		</p>
 	</article>
