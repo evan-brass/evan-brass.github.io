@@ -113,12 +113,23 @@ ul, ol {
 ul ul, ol ul, ul ol, ol ol {
 	margin: 0;
 }
+ul p, ol p {
+	text-indent: unset;
+}
+
+hr {
+	margin: 1.5em 0;
+	border: none;
+	border-bottom: 1px solid currentColor;
+}
 
 nav ul {
 	margin: 0;
 }
-li {
+ul li {
 	list-style: square outside;
+}
+li {
 	margin-left: 1.5em;
 }
 
