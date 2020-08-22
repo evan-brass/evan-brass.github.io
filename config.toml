@@ -13,6 +13,8 @@ sort_by = "date"
 taxonomies = [
 	{ name = "tags", feed = true }
 ]
+# Try to get forestry to use toml frontmatter
+metaDataFormat = "toml"
 
 [extra]
 # publisher = "Evan Brass"
