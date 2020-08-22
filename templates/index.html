@@ -24,22 +24,22 @@
 	<body>
 		<header>
 			{% block header %}
-				<h1><a href="{{ config.base_url }}">{{ config.title | upper }}</a></h1>
+				<h1><a href="{{ config.base_url | safe }}">{{ config.title | upper }}</a></h1>
 				<p>{{ config.description }}</p>
 				<nav>
 					{% set root_section = get_section(path="_index.md") %}
 					{# List top-level pages: #}
 					{% for page in root_section.pages %}
-						<a href="{{ page.permalink }}">{{ page.title }}</a>
+						<a href="{{ page.permalink | safe }}">{{ page.title }}</a>
 					{% endfor %}
 					{# List top-level sections #}
 					{% for sub_path in root_section.subsections %}
 						{% set section = get_section(path=sub_path) %}
-						<a href="{{ section.permalink }}">{{ section.title }}</a>
+						<a href="{{ section.permalink | safe }}">{{ section.title }}</a>
 					{% endfor %}
 					{% if config.extra.navigation %}
 						{% for item in config.extra.navigation %}
-							<a href="{{ item.url }}">{{ item.name }}</a>
+							<a href="{{ item.url | safe }}">{{ item.name }}</a>
 						{% endfor %}
 					{% endif %}
 				</nav>

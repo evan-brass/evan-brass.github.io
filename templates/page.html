@@ -16,7 +16,7 @@
 			{% if page.taxonomies.tags %}
 				<div itemprop="keywords">
 					{% for tag in page.taxonomies.tags %}
-						<a href="{{ get_taxonomy_url(kind="tags", name=tag) }}">{{ tag }}</a>
+						<a href="{{ get_taxonomy_url(kind="tags", name=tag) | safe }}">{{ tag }}</a>
 						{%- if tag != page.taxonomies.tags | last -%}
 							,
 						{%- endif -%}
