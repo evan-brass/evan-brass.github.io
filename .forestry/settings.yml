@@ -9,6 +9,10 @@ sections:
   label: Blog
   create: all
   match: "**/*"
+- type: document
+  path: content/about.md
+  label: About
+  match: "**/*"
 upload_dir: uploads
 public_path: "/uploads"
 front_matter_path: ''
