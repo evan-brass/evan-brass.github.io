@@ -19,8 +19,10 @@ body {
 body {
 	--background-color: #eee;
 	--foreground-color: #111;
-	--code-background: #D4D7ED;
+	--code-background: #bbc3ff;
 	--link-color: #5d72d8;
+	--del-foreground: #772121;
+	--del-background: #d8b1b1;
 }
 @media(prefers-color-scheme: light) {}
 @media(prefers-color-scheme: dark) {
@@ -30,6 +32,8 @@ body {
 		--foreground-color: #ccc;
 		--code-background: #2E3760;
 		--link-color: #7F8EDC;
+		--del-foreground: #dc6565;
+		--del-background: #1f1212;
 	}
 }
 
@@ -44,11 +48,14 @@ body {
 	font-size: 16px;
 	line-height: 1.5;
 	letter-spacing: 0.4pt;
+	tab-size: 4;
+	-moz-tab-size: 4;
 }
 @media(max-width: 500px) {
 	body {
 		padding: 1em;
 		tab-size: 2;
+		-moz-tab-size: 2;
 	}
 }
 
@@ -147,27 +154,16 @@ code {
 	font-family: monospace;
 	background-color: var(--code-background);
 }
+del {
+	text-decoration-line: line-through;
+	color: var(--del-foreground);
+	background-color: var(--del-background);
+}
 img {
 	max-width: 100%;
 	display: block;
 	position: relative;
 	margin: 0 auto;
-}
-/* style this to fit your needs */
-/* and remove [alt] to apply to all images*/
-img[alt]:after {  
-	display: block;
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	background-color: #fff;
-	font-family: 'Helvetica';
-	font-weight: 300;
-	line-height: 2;  
-	text-align: center;
-	content: attr(alt);
 }
 nav.paginator {
 	text-align: center;
