@@ -5,10 +5,10 @@ description = "Mediocre content about life and my technical interests."
 
 compile_sass = false
 highlight_code = true
+highlight_theme = "css"
 generate_feed = true
 build_search_index = false
 sort_by = "date"
-# highlight_theme = "monokai-var"
 
 taxonomies = [
 	{ name = "tags", feed = true }
