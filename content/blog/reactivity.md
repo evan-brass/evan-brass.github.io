@@ -151,6 +151,7 @@ function selectable_list(items) {
 		}
 		```
 		* This should be incremental but it's hard to write and I'm not sure if this case could be factored out into something worth putting in a library.
+		* Maybe just give up on incremental arrays?  They're hard.
 	* What about objects?
 		* Treat individual properties as live-data
 			* Might not be expressive enough?
