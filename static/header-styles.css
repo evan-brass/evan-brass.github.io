@@ -1,3 +1,6 @@
+@import url("./highlight-light.css") (prefers-color-scheme: light);
+@import url("./highlight-dark.css") not (prefers-color-scheme: light);
+
 * {
 	margin: 0;
 	scroll-behavior: smooth;
@@ -17,30 +20,30 @@ body {
 }
 
 body {
-	--background-color: #eee;
-	--foreground-color: #111;
-	--code-background: #bbc3ff;
-	--link-color: #5d72d8;
-	--del-foreground: #772121;
-	--del-background: #d8b1b1;
+	--background-color: #111;
+	--foreground-color: #ccc;
+	--code-background: #2E3760;
+	--code-highlight-background: #004242;
+	--link-color: #7F8EDC;
+	--del-foreground: #dc6565;
+	--del-background: #1f1212;
 }
-@media(prefers-color-scheme: light) {}
-@media(prefers-color-scheme: dark) {
-	/* TODO: Add menu to control light/dark mode */
+@media (prefers-color-scheme: light) {
 	body {
-		--background-color: #111;
-		--foreground-color: #ccc;
-		--code-background: #2E3760;
-		--link-color: #7F8EDC;
-		--del-foreground: #dc6565;
-		--del-background: #1f1212;
+		--background-color: #eee;
+		--foreground-color: #111;
+		--code-background: #bbc3ff;
+		--code-highlight-background: #fdff97;
+		--link-color: #5265bf;
+		--del-foreground: #772121;
+		--del-background: #d8b1b1;
 	}
 }
 
 body {
 	font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 	box-sizing: border-box;
-	transition: padding 0.3s;
+	/* transition: padding 0.3s; */
 	padding: 3em;
 	background-color: var(--background-color);
 	color: var(--foreground-color);
@@ -153,6 +156,38 @@ code {
 	font-size: 14px;
 	font-family: monospace;
 	background-color: var(--code-background);
+}
+code mark {
+	background-color: var(--code-highlight-background);
+	color: currentColor;
+	display: block;
+}
+code table {
+	width: 100%;
+	/* table-layout: fixed; */
+}
+code .code-line::before {
+	content: counter(line-numbers);
+	position: absolute;
+	transform: translateX(calc(-100% + .5ch));
+}
+code .code-line {
+	padding-left: 2.5ch;
+	display: block;
+}
+code .code-line:not(:first-of-type) {
+	counter-increment: line-numbers;
+}
+code td {
+	vertical-align: top;
+	text-align: left;
+	border-collapse: collapse;
+}
+code td:nth-of-type(2n - 1) {
+	text-align: right;
+}
+code td:nth-of-type(2n) {
+	width: 100%;
 }
 del {
 	text-decoration-line: line-through;

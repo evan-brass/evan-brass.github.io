@@ -1,77 +1,84 @@
 {% import "snippets.html" as snippets %}
 
 <!DOCTYPE html>
-<html
-	{%- if lang %} lang="{{ lang }}"{% endif -%}
->
-	<head>
-		<meta charset="utf-8">
+<html {%- if lang %} lang="{{ lang }}" {% endif -%}>
 
-		{# Enable Responsivenes #}
-		<!-- <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"> -->
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<head>
+	<meta charset="utf-8">
 
-		{# SEO Stuff #}
-		<meta name="description" content="{% block description %}{{ config.description }}{% endblock description %}">
+	{# Enable Responsivenes #}
+	<!-- <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"> -->
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-		<title>{% block title %}{{ config.title }}{% endblock title %}</title>
+	{# SEO Stuff #}
+	<meta name="description" content="{% block description %}{{ config.description }}{% endblock description %}">
 
-		
-		{% if config.generate_feed %}
-        <link rel="alternate" type={% if config.feed_filename == "atom.xml" %}"application/atom+xml"{% else %}"application/rss+xml"{% endif %} title="RSS" href="{{ get_url(path=config.feed_filename) | safe }}">
-      	{% endif %}
+	<title>{% block title %}{{ config.title }}{% endblock title %}</title>
 
-		<link rel="stylesheet" href="{{ get_url(path="header-styles.css", trailing_slash=false, cachebust=true) | safe }}">
-		<!-- <link rel="stylesheet" href="{{ get_url(path="columns.css", trailing_slash=false, cachebust=true) | safe }}"> -->
-	</head>
-	<body>
-		<header>
-			{% block header %}
-				<h1><a href="{{ config.base_url | safe }}">{{ config.title | upper }}</a></h1>
-				<p>{{ config.description }}</p>
-				<nav>
-					{% set root_section = get_section(path="_index.md") %}
-					{# List top-level pages: #}
-					{% for page in root_section.pages %}
-						<a href="{{ page.permalink | safe }}">{{ page.title }}</a>
-					{% endfor %}
-					{# List top-level sections #}
-					{% for sub_path in root_section.subsections %}
-						{% set section = get_section(path=sub_path) %}
-						<a href="{{ section.permalink | safe }}">{{ section.title }}</a>
-					{% endfor %}
-					{% if config.extra.navigation %}
-						{% for item in config.extra.navigation %}
-							<a href="{{ item.url | safe }}">{{ item.name }}</a>
-						{% endfor %}
-					{% endif %}
-				</nav>
-			{% endblock header %}
-		</header>
-		<main>
-			{% block content %}
-				{{ section.content }}
 
-				{% for sub_path in section.subsections %}
-					{% set subsection = get_section(path=sub_path) %}
-					
-					<h1 class="separator">{{ subsection.title | title }}:</h1>
-					
-					{% if subsection.pages %}
-						{% for page in subsection.pages | slice(end=3) %}
-							{{ snippets::article_preview(page=page) }}
-						{% endfor %}
-					{% endif %}
-				{% endfor %}
-			{% endblock content %}
-		</main>
-		<footer>
-			{%- block footer -%}
-				{% for social in config.extra.social %}
-					{% if social == config.extra.social | last %}and{% endif %}
-					<a href="{{ social.url | safe }}">{{ social.name }}</a>
-				{% endfor %}
-			{%- endblock footer -%}
-		</footer>
-    </body>
+	{% if config.generate_feed %}
+	<link rel="alternate" type={% if config.feed_filename=="atom.xml" %}"application/atom+xml"{% else
+		%}"application/rss+xml"{% endif %} title="RSS" href="{{ get_url(path=config.feed_filename) | safe }}">
+	{% endif %}
+
+	<link rel="stylesheet" href="{{ get_url(path="header-styles.css", trailing_slash=false, cachebust=true) | safe }}">
+	<link rel="stylesheet" media="(prefers-color-scheme: dark)" href="{{ get_url(path="highlight-dark.css", trailing_slash=false, cachebust=true) | safe }}">
+	<link rel="stylesheet" media="(prefers-color-scheme: light)" href="{{ get_url(path="highlight-light.css", trailing_slash=false, cachebust=true) | safe }}">
+	<!-- <link rel="stylesheet" href="{{ get_url(path="columns.css", trailing_slash=false, cachebust=true) | safe }}"> -->
+	<script type="text/javascript" id="MathJax-script" async
+		src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/mml-chtml.js">
+	</script>
+</head>
+
+<body>
+	<header>
+		{% block header %}
+		<h1><a href="{{ config.base_url | safe }}">{{ config.title | upper }}</a></h1>
+		<p>{{ config.description }}</p>
+		<nav>
+			{% set root_section = get_section(path="_index.md") %}
+			{# List top-level pages: #}
+			{% for page in root_section.pages %}
+			<a href="{{ page.permalink | safe }}">{{ page.title }}</a>
+			{% endfor %}
+			{# List top-level sections #}
+			{% for sub_path in root_section.subsections %}
+			{% set section = get_section(path=sub_path) %}
+			<a href="{{ section.permalink | safe }}">{{ section.title }}</a>
+			{% endfor %}
+			{% if config.extra.navigation %}
+			{% for item in config.extra.navigation %}
+			<a href="{{ item.url | safe }}">{{ item.name }}</a>
+			{% endfor %}
+			{% endif %}
+		</nav>
+		{% endblock header %}
+	</header>
+	<main>
+		{% block content %}
+		{{ section.content }}
+
+		{% for sub_path in section.subsections %}
+		{% set subsection = get_section(path=sub_path) %}
+
+		<h1 class="separator">{{ subsection.title | title }}:</h1>
+
+		{% if subsection.pages %}
+		{% for page in subsection.pages | slice(end=3) %}
+		{{ snippets::article_preview(page=page) }}
+		{% endfor %}
+		{% endif %}
+		{% endfor %}
+		{% endblock content %}
+	</main>
+	<footer>
+		{%- block footer -%}
+		{% for social in config.extra.social %}
+		{% if social == config.extra.social | last %}and{% endif %}
+		<a href="{{ social.url | safe }}">{{ social.name }}</a>
+		{% endfor %}
+		{%- endblock footer -%}
+	</footer>
+</body>
+
 </html>

@@ -1,0 +1,37 @@
+<math xmlns="http://www.w3.org/1998/Math/MathML">
+ <semantics>
+  <mrow>
+   <mrow>
+    <msub>
+     <mi>Z</mi>
+     <mi>n</mi>
+    </msub>
+    <mo stretchy="false">=</mo>
+    <mrow>
+     <msup>
+      <mrow>
+       <mo stretchy="false">(</mo>
+       <mrow>
+        <msub>
+         <mi>Z</mi>
+         <mrow>
+          <mrow>
+           <mi>n</mi>
+           <mo stretchy="false">−</mo>
+           <mn>1</mn>
+          </mrow>
+         </mrow>
+        </msub>
+       </mrow>
+       <mo stretchy="false">)</mo>
+      </mrow>
+      <mn>2</mn>
+     </msup>
+     <mo stretchy="false">+</mo>
+     <mi>C</mi>
+    </mrow>
+   </mrow>
+  </mrow>
+  <annotation encoding="StarMath 5.0">Z_n = (Z_{n - 1})^2 + C</annotation>
+ </semantics>
+</math>

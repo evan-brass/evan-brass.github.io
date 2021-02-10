@@ -4,8 +4,6 @@ title = "Evan Brass"
 description = "Mediocre content about life and my technical interests."
 
 compile_sass = false
-highlight_code = true
-highlight_theme = "css"
 generate_feed = true
 build_search_index = false
 sort_by = "date"
@@ -15,6 +13,15 @@ taxonomies = [
 ]
 # Try to get forestry to use toml frontmatter
 metaDataFormat = "toml"
+
+[markdown]
+highlight_code = true
+# highlight_theme = "solarized-light"
+# highlight_theme = "css"
+# highlighting_themes_css = [
+# 	{ theme = "solarized-dark", filename = "highlight-dark.css" },
+# 	{ theme = "solarized-light", filename = "highlight-light.css" }
+# ]
 
 [extra]
 # publisher = "Evan Brass"

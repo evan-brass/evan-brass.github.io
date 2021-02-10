@@ -1,0 +1,20 @@
+localhost {
+	root * public/
+	encode gzip zstd
+
+	# Setup mime types:
+	@mjs_mime {
+		path *.mjs
+	}
+	@js_mime {
+		path *.js
+	}
+	@wasm_mime {
+		path *.wasm
+	}
+	header @mjs_mime +Content-Type Application/ECMAScript; charset=utf-8
+	header @js_mime +Content-Type Application/JavaScript; charset=utf-8
+	header @wasm_mime +Content-Type application/wasm
+
+	file_server browse
+}
