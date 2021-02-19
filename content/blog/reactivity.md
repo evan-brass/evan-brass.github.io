@@ -10,16 +10,19 @@ Everything I know (or think I know) about reactivity.
 Reactivity is two things: detecting where data is mutated and plumbing those mutations to where that data was used.  Without a reactive system the burden of updating the view is present at every mutation.  I've written a lot of code without a reactive system.  Most often with those projects, I would write some half-baked reactive code to make life easier.  A little forthought and knowledge at the beginning of a project can save a lot of time down the line.
 
 # What does code without reactivity look like:
-All update work doen in events.  Mutation's happen directly in event handlers rather than being propagated by an external system.
+All update work done in events.  Mutation's happen directly in event handlers rather than being propagated by an external system.
 
 Sticky situations:
 * When you want something to happen most of the time except for a brief time.  Do you remove the event listener? Do you gate the mutation based on an external variable that get's updated?
 	* Modeling both of these is very difficult.  I think state machines are better, but state machines are hard to build UI's with.
 
 # Detecting Change
+Doing that plumbing requires something called a dependency graph which is a Directed Asyclic Graph (for our purposes) where a set of 'root' values can be changed and everything else is computed off of them.  What those base nodes of the graph look like can be different and is often a matter of personal preference.  The ways that I know of are:
 * It's all setters and getters:
 	* React hook style: `const [count, set_count] = use_state()`
+		* Because count here is not a getter, this approach doesn't work with dynamic dependency graph construction or at least it's "context" is scoped to the call to `use_state`.  This is fine for React because it only tracks one context and one state anyway.
 	* Proxies or `setState(key, newvalue)`
+		* Vue
 	* Getter and setter: (My prefered method)
 		```javascript
 		const state = { 
@@ -32,19 +35,116 @@ Sticky situations:
 		};
 		```
 		The nice thing about the setter/getter method is that they share the same name so you can do stuff like this: `count.value += 1` instead of `set_count(count + 1)`.  I think setter/getter is about as close to the Svelte destiny operator as you can get in something that doesn't have a compiler.
+	* Probably don't do this:
+		```javascript
+		const state = {
+			get name() {}, set name() {},
+			get count() {}, set count() {},
+		};
+		with (state) {
+			return html`
+				<h2>${name}</h2>
+				<p>The number is ${count}</p>
+			`;
+		}
+		```
+		This wouldn't even work:
+		```javascript
+		const new_scope = new Proxy({
+			has: function(target, prop_key) {
+				console.log("inner was looking for a ", prop_key);
+				return Reflect.has(target, prop_key);
+			}
+		});
+		let test = (function() {
+			let a = 5;
+			with (scope) {
+				let b = 6;
+				return function (c) {
+					let d = "A string";
+					console.log(a, b, c, d);
+				};
+			}
+		})();
+		test("This is c");
+		```
+		Even though it's pretty interesting.
+	* Compilers / Static Analysis:
+		* I believe that compilers are the way to go, but I think they should be an optional optimization step.  Ideally, we should create a runtime framework with enough information encoded so that something like Prepack could optimize away most of need for the dependency graph.
+		* Svelte
+
+# Side Stepping the problem
+What I'd like to talk about is called fine-grained reactivity where we detect changes at the root and then perform ~exactly the computation required to sync things up, but you could also detect changes at other points in the cycle.  Most well known would be detecting changes at the view level with VDOM.
+* Diff at the state level: (Angular? Doesn't angular have like global listeners and then it checks the state when any of them are triggered?)
+* Diff at the DOM level: React and any other VDOM library
+* Diff somewhere in between: Lit-HTML (Still view level but not quite at the DOM level), Vue (ish), (Hyper?)
 
 # Propogating Change
-* Manual graph construction: Observables, async iterators / streams,
+Once you have a set of root state we can start deriving views and additional state from them.  We need to build up that dependency graph though and there's a few ways that we can do that.
+* Manual graph construction: Observables, async iterators / streams
+	* My first ~reactive system had string keys that represented properties and I had to declare my dependencies manually.
+		```javascript
+		const state = {
+			a: 2, b: "John", c: "Doe"
+		};
+		context('a', () => {
+			// Use state.a somehow
+			let d = 'Hi '.repeat(state.a);
+
+			context(['b', 'c'], () => {
+				// Use state.b and state.c and d
+				greeting.innerText = `${d}${state.b} ${state.c}!`;
+			});
+		});
+		```
+	* Manual graph construction usually has trouble with changing dependencies.  (See Problems Affecting change propagation)
 * Automatic graph construction:
 	* Compiler: Svelte, Solid.js?,
-	* Single threaded systems: Auto user collection with a virtual stack type thing + microtasks to detect when execution is finished.
-* Non fine-grained:
-	* Diffing / reconciliation
+	* Single threaded systems: Auto user collection with a virtual stack (begin / end calls).
 
-# (WIP:) Incremental algorithms:
-* Sort:
-	
-Doing this is inefficient:
+## Problems Affecting change propagation
+For several reasons, it is helpful to be able to propagate multiple changed root variables at the same time or as a single operation.
+1. This lets us update multiple values during an event.
+2. It also lets us "suspend" propagating updated while the user isn't looking at the page and then perform one big update when they return rather than needing to replay every change that happened while they were away.
+
+Take this graph for example:
+```
+A - - - - - - - - - \
+                     - > F
+B - \               /
+     - > D - > E - /
+C - /
+```
+Three root properties: A, B, and C.
+Three computed properties: D, E, and F.
+D depends on B and C.
+E depends on D.
+F depends on A and E.
+
+* Double updates (priority / update sorting)
+	* If A and B are both changed, we should update D's value before updating F.  If D's value doesn't change then recomputing F can reuse the existing value for E.  If D's value does change though, then we need to update E too before computing F.
+	* Computing F using an old value of E before computing D / E likely won't be visible to the user if all update happen during a single task before any DOM changes are rendered.
+* Back pressure / user visability
+	* How do you maintain a "dirty list" so that you can resync when the user returns?
+		* Observables don't have backpressure but async iterables do.
+	* Fast producer slow consumer problem:
+		* Eg. What if a "progress" or "ETA" is changing faster than the user's screen refresh rate?  We should throttle updating the dom to match their refresh rate (RequestAnimationFrame).
+* Optional dependence / changing or dynamic graph
+	* Some amount of graph reconstruction would be required to manage a perfectly minimal update hierarchy.
+		```javascript
+		function calc_d(a, b, c) {
+			if (a <= 5) {
+				return a + b; // Becomes stale if: a or b change (c doesn't matter)
+			} else {
+				return b + c; // Becomes stale if: a goes above 5, or if b or c change
+			}
+		}
+		```
+
+# The JSON observation
+The JSON observation is that all data can be represented using bools, numbers, strings, arrays, and objects.  We should consider each of these (primitives, arrays, and objects) when building our a reactive library.  Up till know I've assumed that all values were either primitive or immutable (that way a change to an item in an array or a property within an object required resetting the whole object).
+## A motivating example
+Doing this is really inefficient:
 ```javascript
 function selectable_list(items) {
 	const active_index = reactive(0);
@@ -67,6 +167,71 @@ function selectable_list(items) {
 	`;
 }
 ```
+What this does is it creates a closure for every single element in the list and that closure runs every time the active index changes.  Each item is checking to see if it is the active index.
+We look at this and immediately notice that all we need to do is access the previously selected item and remove it's selection and access the currently selected item and select it (assuming they are different items - though it would work if they were the same as long as remove comes first).
+From [Adapton](http://adapton.org/) "A program P is incremental if repeating P with a changed input is faster than from-scratch recomputation."
+Examples: 
+* Sorting an element into an already sorted array is O(n) while adding the element and resorting could be O(nlog(n))
+* If you already know the max of a list, the max after adding an item is the max of the old list and the new value.
+* Adding or removing elements to a list and mapping it is easy, but only if the map doesn't rely on the index because addition / removal affects neiboring indexes.
+Sets, maps, and objects can be thought of as lists in most cases I think.  A set is just a list without duplicates.  A map is a list of key -> value pairs without duplicate keys, and an objects has `keys`, `values`, and `entries` lists.
+My conclusion is that working with lists is hard.  I think there's a reason that the DOM apis are like they are and so working with lists should probably look similiar to a child node's interface where it can remove itself / insert relative to itself, but it doesn't really know where it is.
+I also think that there is a place for diffing / reconciliation algorithms as a good balance between memory usage and performance for when you're dealing with complicated lists with difficult transitions.
+I don't really have an answer for this.
+
+# Solutions for Parts of Change Propagation:
+* How to group multiple changes that result from a single event into a propagation flow?
+	* Using microtasks or requestAnimationFrame (or more likely both to automatically get "suspend" when the user isn't looking at the page).
+* How to construct the dependency graph?
+	* Virtual stack of functions:
+	Use and Single:
+	```javascript
+	const context_stack = [];
+
+	export function context(user) {
+		context_stack.push(user);
+		user();
+		if (user !== context_stack.pop()) throw new Error("Context corruption");
+	}
+	export function single(initial_value) {
+		let value = initial_value;
+		let downstream = new Set();
+		return {
+			get value() {
+				// Aquire the top context as a dependent so that we can queue it for updates when our value changes:
+				downstream.add(context_stack[context_stack.length - 1]);
+
+				return value;
+			},
+			set value(newValue) {
+				value = newValue;
+				// Queue our downstream updates.
+				queue_downstream(downstream);
+
+				return true;
+			}
+		};
+	}
+	```
+	View:
+	```javascript
+	const state_1 = single("initial value");
+	context(() => {
+		let intermediate = "Something" + state_1.value;
+
+		context(() => {
+
+		});
+	});
+
+	```
+
+
+
+
+# (WIP:) Incremental algorithms:
+* Sort:
+	
 * First use duplication: You write code to construct the view that looks like - but isn't identical to - the code that you write to update the UI when the value changes.
 ---
 
