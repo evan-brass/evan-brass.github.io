@@ -169,7 +169,7 @@ function selectable_list(items) {
 ```
 What this does is it creates a closure for every single element in the list and that closure runs every time the active index changes.  Each item is checking to see if it is the active index.
 We look at this and immediately notice that all we need to do is access the previously selected item and remove it's selection and access the currently selected item and select it (assuming they are different items - though it would work if they were the same as long as remove comes first).
-From [Adapton](http://adapton.org/) "A program P is incremental if repeating P with a changed input is faster than from-scratch recomputation."
+From [Adapton](http://adapton.org/) "A program P is incremental if repeating P with a changed input is faster than from-scratch recomputation."  Personally, I think just being faster than from-scrath is a low bar.  Long lived applications need to be as efficient as possible.
 Examples: 
 * Sorting an element into an already sorted array is O(n) while adding the element and resorting could be O(nlog(n))
 * If you already know the max of a list, the max after adding an item is the max of the old list and the new value.
@@ -179,9 +179,25 @@ My conclusion is that working with lists is hard.  I think there's a reason that
 I also think that there is a place for diffing / reconciliation algorithms as a good balance between memory usage and performance for when you're dealing with complicated lists with difficult transitions.
 I don't really have an answer for this.
 
+## Reactive Values
+Reactive values are pretty easy
+
+## Reactive Arrays
+Arrays are really hard.  With things like sort, the order changes so a map from old index -> new is needed so that you can update the right item when an item in the list changes.
+But Solid.js does do this [https://github.com/ryansolid/solid/blob/master/packages/solid/src/reactive/array.ts] and it's based off another project.
+Arrays are where the "time space" tradeoff in reactive system is most visible to me.  We can save CPU time with memory and more complex data structures.  If we want to save memory, we can use diffing or reconciliation to avoid storing the complex array stuff.
+Additionally, I think that we might be able to find constraint that give us good memory and CPU performance though I don't know exactly what that would look like.  I assume it would be more linked-list centric so that it could piggy back off of the linked-list style apis that html nodes have.
+Adding other constraints can also remove memory usage.  For instance if we mapped an array and required that the dependencies of the functions had to all be the same, then we could have a single entry instead of having individual functions for each element of the array.  For UIs I think most mapped arrays could be like that.
+
+
+## Reactive Objects
+Objects can be thought of as an array of key value pairs - a map.  In most cases, if the state is static (all properties are known beforehand) then this wouldn't be needed because the object can be flattened into individual values.
+
+
 # Solutions for Parts of Change Propagation:
 * How to group multiple changes that result from a single event into a propagation flow?
 	* Using microtasks or requestAnimationFrame (or more likely both to automatically get "suspend" when the user isn't looking at the page).
+	* Solid.js uses a batch function to group multiple updates because otherwise it is synchronous.
 * How to construct the dependency graph?
 	* Virtual stack of functions:
 	Use and Single:
