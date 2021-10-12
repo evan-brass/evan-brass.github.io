@@ -1,14 +1,8 @@
-+++
-title = "Built-In and Custom Traits in JavaScript"
-date = 2020-06-15
+= Built-In and Custom Traits in JavaScript
+How to use Symbols to implement a trait pattern.
+JavaScript, Patterns, Traits
+:date: 2020-06-15
 
-[taxonomies]
-tags = [
-	"JavaScript",
-	"Patterns",
-	"Traits"
-]
-+++
 # The Problem
 Polymorphism is important in any language and while it is very easy to write polymorphic code in JavaScript, it is relatively hard to manage that code. Without explicit types you must either assume the structure of an object, or explicitly test its structure before using any functionality. Explicitly testing slows down your code, while making unsound assumptions usually results in bugs. This might sound like a trade off, but it’s just another problem for which fast and safe solutions exist.
 

@@ -1,17 +1,7 @@
-+++
-title = 'Introduction to Programming 1: Background'
-date = 2018-07-17T19:31:29.000+00:00
+= Introduction to Programming 1: Background
+:keywords: JavaScript, Tutorial
+:date: 2018-07-17T19:31:29.000+00:00
 
-[taxonomies]
-tags = [
-	"JavaScript",
-	"Tutorial"
-]
-
-[extra]
-canonical = ""
-alternate = []
-+++
 Programming has its roots in mathematics. Every ([sane](https://esolangs.org/wiki/Three_Star_Programmer)) programming language has an underlying model of computation. Those underlying models have been proven to have equal power, that is that anything which can be done in one can be done in another.
 
 Computation can be described by different models and performed by different machines. For example, your brain right now, as it reads these words is performing computation. Each individual neuron is comprehensible. It has dendrites which are its inputs, and an axon which is its output. The spaces between axons and dendrites are called synapses and different neurotransmitters are passed across these synapses. The output of each neuron computes a weighted sum of the inputs on its dendrites. If their sum is higher then a threshold then the neuron “fires” and it sends a signal out its axon (to other dendrites). There’s no magic here (though I’ve grossly over simplified). But if you attempt to understand even a moderate portion of the brain or one of its functions (emotion, object recognition, the thalamus, memory, sleep, etc.) then there is more magic to unravel then perhaps there is time left for our sun. A similarly simple-component-but-complex-system is that of the Turing Machine which is the primary model of computing behind modern Central Processing Units (CPU).

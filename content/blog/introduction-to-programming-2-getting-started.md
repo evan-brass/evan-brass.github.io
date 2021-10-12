@@ -1,17 +1,7 @@
-+++
-title = "Introduction to Programming 2: Getting started"
-date = 2018-07-17T19:34:04Z
+= Introduction to Programming 2: Getting started
+:keywords: JavaScript, Tutorial
+:date: 2018-07-17T19:34:04Z
 
-[taxonomies]
-tags = [
-	"JavaScript",
-	"Tutorial"
-]
-
-[extra]
-canonical = ""
-alternate = []
-+++
 How do you get started programming? You press control+shift+i if your on Chrome, Firefox or Edge. To open the developer tools for Safari I Googled it for you: [http://wickedlysmart.com/hfjsconsole/](http://wickedlysmart.com/hfjsconsole/ "http://wickedlysmart.com/hfjsconsole/"). This brings up the developer tools, your new home for the first section of this tutorial. Next you’ll want to navigate to the console. This is where we’ll be typing in expressions.
 
 Hello world in JavaScript is about as easy as could be. At the console type: `console.log('Hello World');`

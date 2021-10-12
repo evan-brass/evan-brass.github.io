@@ -1,9 +1,7 @@
-+++
-title = "Reactivity"
-date = 2020-07-31
-draft = true
+= Reactivity
+:date: 2020-07-31
+:draft:
 
-+++
 Everything I know (or think I know) about reactivity.
 
 # Reactivity

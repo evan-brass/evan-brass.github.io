@@ -1,15 +1,7 @@
-+++
-title = "Distributed Web Applications"
-date = 2020-03-27T20:18:42Z
+= Distributed Web Applications
+:keywords: JavaScript, Distributed Systems, WebRTC, WebPush
+:date: 2020-03-27T20:18:42Z
 
-[taxonomies]
-tags = [
-	"JavaScript",
-	"Distributed Systems",
-	"WebRTC",
-	"WebPush"
-]
-+++
 I’m a big believer in distributed systems. It is easy to see the need for distributed systems when we see the existing digital infrastructure being tested by COVID-19 levels of load. Unfortunately, distributing a system is not usually a simple task. Consistency no longer comes naturally and horizontal scaling is difficult. Distributing a system requires careful thought. It can be worthwhile though.
 
 # Why should we build distributed web apps?

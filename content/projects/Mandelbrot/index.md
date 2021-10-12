@@ -1,9 +1,7 @@
-+++
-title = "The Mandelbrot Set"
-date = 2020-11-26
-weight = 1
-draft = true
-+++
+= The Mandelbrot Set
+:date: 2020-11-26
+:draft:
+
 A while back I made a simple mandelbrot set visulizer after my calculus professor gave a talk about it.  It only took me one (late) night to get it working which I believe is a testament to the power of webbrowsers.  I used canvas, a math library, and maybe a worker.  Since I rebuilt this website, it's no longer accessible and I want to change that.
 
 I've decided to recreate it here.  Partly I just want a simple project to work on.  Partly I want to learn how to write interactive educational documents and this seems like a good stress test for me.  When I was in school I occasionally wrote little programs to help me with my homework or to understand things.  I remember writing a little program while solving CPU cache problems.  It just broke memory addresses into parts for cache line, cache affinity, etc.  I've wanted to revisit that and create something which shows the cache lines and could even run simple programs to visualize their memory access behavior.

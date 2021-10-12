@@ -1,17 +1,7 @@
-+++
-title = "How to Instantiate HTML Template Elements"
-date = 2020-08-10
+= How to Instantiate HTML Template Elements
+:keywords: JavaScript, Templates
+:date: 2020-08-10
 
-[taxonomies]
-tags = [
-	"JavaScript",
-	"Templates"
-]
-
-[extra]
-# canonical = ""
-# alternate = []
-+++
 I'm excited about template elements. There's no specified way of instantiating them, so let's talk about where they come from, why we use them, and how to instantiate them.
 
 # Mommy, where do template elements come from?

@@ -1,10 +1,7 @@
-+++
-title = "Building this Site"
-date = 2020-07-30
-weight = 1
-draft = true
+= Building this Site
+:date: 2020-07-30
+:draft:
 
-+++
 # Version 1: First portfolio
 This website has had four to five (attempted) iterations.  The first was a simple portfolio with some cards.  On hover, a short description about each project was visible.
 

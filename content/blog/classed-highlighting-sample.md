@@ -1,12 +1,7 @@
-+++
-title = "Classed Highlighting Sample"
-date = 2020-12-03
+= Classed Highlighting Sample
+:keywords: Open Source
+:date: 2020-12-03
 
-[taxonomies]
-tags = [
-	"Open Source"
-]
-+++
 # A sample of Zola PR 1242
 
 ```rust, linenostart=0, hl_lines=2 3

@@ -1,17 +1,7 @@
-+++
-title = "Introduction to Programming 3: Boolean’s, Logic, and Conditionals"
-date = 2018-07-19T19:46:27Z
+= Introduction to Programming 3: Boolean’s, Logic, and Conditionals
+:keywords: JavaScript, Tutorial
+:date: 2018-07-19T19:46:27Z
 
-[taxonomies]
-tags = [
-	"JavaScript",
-	"Tutorial"
-]
-
-[extra]
-canonical = ""
-alternate = []
-+++
 Till now, I’ve given you no method of telling the computer how to make decisions. You currently don’t have a Turing Complete understanding of JavaScript. Turing Complete means that a machine or language has the functionality required to compute anything that a Turing Machine can compute. We still won’t have a Turing Complete knowledge at the end of this section but we’ll be pretty close.
 
 The Boolean is a data type with two values, True and False. Boolean’s are a core component of logic. Logic spreads over both math and philosophy. Logic — implemented by electrical components — is what engineers use to build computers. The circuits that they design combine little logic gates together into circuits that can be represented by Boolean Expressions.

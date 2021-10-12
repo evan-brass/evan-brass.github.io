@@ -1,18 +1,8 @@
-+++
-title = "Why I Hated AMP and Why My Mind Has Changed"
-date = 2020-07-13T01:36:02Z
-draft = true
+= Why I Hated AMP and Why My Mind Has Changed
+:keywords: AMP, Rant
+:date: 2020-07-13T01:36:02Z
+:draft:
 
-[taxonomies]
-tags = [
-	"AMP",
-	"Rant"
-]
-
-[extra]
-canonical = ""
-alternate = []
-+++
 By hated I mean… hated. Hated for good reasons.
 
 My first thought when I heard about AMP was, “Great, it’s not enough for search engines to track what user’s do before they click our link, now they want to control the experience after the user clicks our link.”

@@ -1,9 +1,7 @@
-+++
-title = "Calendar"
-date = 2020-08-03
-draft = true
+= Calendar
+:date: 2020-08-03
+:draft:
 
-+++
 * Reactivity is my bushel of wheat: A problem that I've attempted many times and now give up for lost whenever I see it.
 * Layout
 	* All: Require custom keyboard navigation
