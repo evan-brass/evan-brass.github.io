@@ -9,6 +9,41 @@ impl<O, T> Parser<O> for T where T: for<'i> Fn(&'i str) -> Option<(O, &'i str)> 
 		self(input)
 	}
 }
+
+pub struct ElementAttributes<'i> {
+	classes: Vec<&'i str>,
+	id: Option<&'i str>,
+	attributes: HashMap<&'i str, &'i str>
+}
+pub enum Block<'i> {
+	Element {
+		tag: &'i str,
+		attributes: ElementAttributes<'i>
+	},
+	Code {
+		language: &'i str,
+		content: &'i str
+	},
+	HorizontalRule,
+	OrderedList {
+		attributes: ElementAttributes<'i>,
+
+	}
+}
+pub enum Inline<'i> {
+	Text (&'i str),
+	Symbol (&'i str),
+	Inserted (Vec<Inline<'i>>),
+	Deleted (Vec<Inline<'i>>),
+	Superscript (Vec<Inline<'i>>),
+	Subscript (Vec<Inline<'i>>),
+	Link (Vec<Inline<'i>>, &'i str),
+	Image (Vec<Inline<'i>>, &'i str), // TODO: Float / alignment
+	Code (Vec<Inline<'i>>),
+	Emphasis (Vec<Inline<'i>>),
+	Strong (Vec<Inline<'i>>)
+}
+
 #[derive(Debug)]
 pub struct Author<'i> {
 	pub name: &'i str,

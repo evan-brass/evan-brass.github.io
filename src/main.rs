@@ -1,11 +1,10 @@
-#![feature(option_result_contains, path_try_exists, if_let_guard)]
+#![feature(option_result_contains, path_try_exists, if_let_guard, pattern)]
 use std::{io::Write, fs::{
 	self, File
 }, io, path::{PathBuf, Path}};
 
 mod parser;
-
-
+mod parser2;
 
 fn render_document(mut output: File, contents: &str) -> io::Result<()> {
 	let (header, _) = parser::parse_header(&contents);
