@@ -5,10 +5,13 @@ use std::{io::Write, fs::{
 
 mod parser;
 mod parser2;
+use parser2::Input;
 
 fn render_document(mut output: File, contents: &str) -> io::Result<()> {
-	let (header, _) = parser::parse_header(&contents);
-	println!("{:?}", header);
+	let mut input = Input::from(contents);
+	let document = parser::parse_document(&mut input).map_err(|e| io::Error::new(
+		io::ErrorKind::Other, e))?;
+	println!("{:#?}", document);
 	let o = &mut output;
 	write!(o, 
 r#"<!DOCTYPE html>
@@ -29,7 +32,7 @@ r#"<!DOCTYPE html>
 				<a href="/projects/">Projects</a>
 			</nav>
 		</header>
-		<main>"#, header.title, header.description)?;
+		<main>"#, document.header.title, document.header.description)?;
 
 	
 	write!(o, r#"
@@ -70,7 +73,7 @@ impl Site {
 				} else {
 					dest = self.dest.join(path.strip_prefix(&self.src).unwrap());
 				}
-				println!("{:?}", dest);
+				// println!("{:?}", dest);
 
 				// Create the parent directory if it doesn't already exist.
 				if !dest.parent().unwrap().try_exists()? {

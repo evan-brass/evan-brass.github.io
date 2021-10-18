@@ -1,9 +1,9 @@
 = Built-In and Custom Traits in JavaScript
 How to use Symbols to implement a trait pattern.
-JavaScript, Patterns, Traits
 :date: 2020-06-15
+JavaScript, Patterns, Traits
 
-# The Problem
+= The Problem
 Polymorphism is important in any language and while it is very easy to write polymorphic code in JavaScript, it is relatively hard to manage that code. Without explicit types you must either assume the structure of an object, or explicitly test its structure before using any functionality. Explicitly testing slows down your code, while making unsound assumptions usually results in bugs. This might sound like a trade off, but it’s just another problem for which fast and safe solutions exist.
 
 A great solution is type annotations. You probably know about TypeScript and Flow already, so I’ll just be mentioning pieces that relate to what I want to discuss.
@@ -12,10 +12,10 @@ Flow and TypeScript don’t solve naming conflicts. If you were trying to implem
 
 Web standard designers can’t have any collisions and they want to innovate quickly. What can they do? They can use symbols - well-known symbols, to be specific.
 
-# Changing Language Behavior
+= Changing Language Behavior
 By using well-known symbols we can do all kinds of things. Most of them don’t seem useful — like `Symbol.toStringTag` which lets you minutely change the output of `.toString` — while others are very useful — like `Symbol.iterator` which lets you create objects that work with for-of loops, the spread operator, and elsewhere. Whether powerful or not, the existence of well-known symbols increases the consistency and introspective ability of JavaScript. Later, we’ll use some well-known symbols to build a custom trait class, but first let’s use `Symbol.iterator` (usually abbreviated `@@iterator`) to build an object that iterates over the Fibonacci sequence to understand how they work.
 
-## Fibonacci Iterator
+== Fibonacci Iterator
 In the real world, it would be better to use a generator instead of the following class and I’m confident that you could build a more concise version than this example. Anyway, here’s the code:
 
 ```javascript
@@ -76,7 +76,7 @@ class Foo {
 
 We can thus always get around naming conflicts, because we can return any object from our `@@iterator` function. If you weren’t using symbols you would probably still have two objects, but might not have a clear way of providing the right one in the right places.
 
-# Runtime and Static Analysis
+= Runtime and Static Analysis
 This is a runtime solution which means it has runtime overhead. In TypeScript, we could have just called `.next()` on an instance of our Fib class because TypeScript’s extra information tells us that Fib has a next method and that its signature matches what we want. With well-known symbols, we have a level of indirection. Not just a pointer de-reference indirection, but a function run indirection — not something to be ignored performance wise. Indirection is usually a requirement for polymorphism unless you have monomorphization. [Also, technically it’s two levels of indirection because we already have one level due to only having references to objects in JavaScript, but let’s move on.]
 
 You may be wondering how using a symbol is any better than just testing if the instance has a next method. If we did that (called duck-typing) we would need to test a lot of stuff. We would need to check if there was a next function, then see if calling next returned an object (if it didn’t, then hopefully we didn’t trigger any side effects), and then check if that object has value and done properties, and that the done property is a boolean, etc. We have to do all these checks because we aren’t certain that the object having a next method that resembles our iterator protocol isn’t just a coincidence. Someone could accidentally implement the iterator protocol when they never intended it to be iterated. Unlikely but possible.
@@ -87,7 +87,7 @@ Since we know that the implementer intentionally made the object iterable, we do
 
 Lastly, the iterator protocol plays nicely with others. Anything iterable can be iterated either with a for-of loop, spread, `Array.from()`, or manually calling `.next()` no mater what library it comes from. Similarly, if we create our own symbols — well-known in that they are only obtainable by importing an es6 module — with a clear protocol, then all code using it _should_ be interoperable.
 
-# The Pattern: Imitate and Extend Well-Known Symbols
+= The Pattern: Imitate and Extend Well-Known Symbols
 To begin exploring what having our own well-known symbols (which I will now also call traits) is like, let’s first introduce a helper that will make working with them easier. It’s a simple class that takes advantage of a few well-known symbols to adjust JS behavior.
 
 ```javascript
@@ -147,7 +147,7 @@ console.assert(new Car()[Sayable]() == "Vroom.");
 
 This illustrates how easy it is to test if something implements a trait and that the protocol a trait represents can be anything (functions, objects, just a property, etc.) except undefined.
 
-## State in Trait Protocols and Implementations
+== State in Trait Protocols and Implementations
 Something to note is that the protocol for Drivable is different from the iterator protocol. In the iterator protocol, the object returned from `@@iterator` can have state which is why when you use a for-of loop to iterate over an array and then later use another for-of loop on that array, the second iteration will start from the beginning not where you last stopped — the iterations are independent. This happens even if you break out of the first loop before reading to the end of the array. In our Drivable trait, we get the object that implements Drivable for our Car, but we don’t store it before calling `.steer()`. This means if we needed to call `.steer()` again, we would have to fetch the Drivable implementation again. In the case of Horse, the returned implementation would be a **brand new object** instead of the one previously returned, but it would **function identically** to the first value it returned because it has no state / applies all changes to the Horse directly.
 
 For many traits, it makes sense for the protocol to require statelessness in the implementation. If you had an array of objects, and your protocol wasn’t stateless, you might need a second array to hold the trait implementation objects doubling the memory used. Here’s an example of that happening:
@@ -181,7 +181,7 @@ Looking back at the iterator protocol, iteration is usually short-lived reducing
 
 Iteration can be made to affect the container as we did in our Fibonacci example. It wasn’t very useful for Fibonacci, but it is very useful if you are building something like a queue where every item needs to be seen once even though there might be pauses between iteration. Building a consuming iterator is a good way to transform events / callbacks into an async “stream” — something I’ve done a lot of.
 
-## Generic Implementations
+== Generic Implementations
 Well-known symbols help avoid / work around collisions. They give us confidence that our protocol was intentionally implemented (or at least attempted to be implemented). That alone isn’t enough to want to use this pattern, though. It becomes more attractive when you see that you can write functions to implement traits for a class based on other traits it implements — generic implementations.
 
 Here’s an example where the AI of an entity is derived from whether the entity is Undead or not:
@@ -236,21 +236,21 @@ This puts all of the AI logic in one place and keeps the prototype chains short.
 
 It’s a little inconvenient to have to call `implement_ai()` on each class, but once we get decorators this kind of thing will be easier and more common.
 
-## Interaction with TypeScript
+== Interaction with TypeScript
 The last thing I want to mention is that this pattern is hard to work with in TypeScript. I’ve briefly tried to add types for some code that used it heavily and it didn’t work. If you know how to do it, I’m eager to learn how.
 
 The problem is mostly because we’re adding a method / property with a dynamic name. The Trait class is a constant expression that evaluates to the symbol, but TypeScript can’t see it — not without partial evaluation perhaps. If I’m not mistaken, even the standardized well-known symbols require special support within TypeScript — which can’t be extended to our symbols.
 
 Something I haven’t tried is using a symbol registered with a string using `Symbol.for()`. This is an alternative to having it be in an es6 module and importing that module into all the code that implements that trait. Personally, I don’t like the registering approach because it gets back to using strings to avoid collisions. It’s like using `fantasy-land/empty` as the function name — unlikely to collide, but possible.
 
-# Conclusion
+= Conclusion
 I hope you learned something. Maybe you hadn’t overridden default behavior using well-known symbols before. Maybe you have an idea for a better `instanceof` than the one I’ve shown you. Maybe you take issue with everything I’ve said. That’s fair and I’d love to talk with you about what you think.
 
 I think this pattern has precedence in the standard and is therefore worthwhile exploring. We may see more well-known symbols in the future and working with them should be natural. There’s a lot that goes into designing traits and building good protocols — some of which we can learn from watching JavaScript be developed. Sadly, this pattern doesn’t seem typed-super-set friendly.
 
 Thanks for reading. Have a good day, and happy coding.
 
-## Resources
+== Resources
 * [TypeScript Symbols](https://www.typescriptlang.org/docs/handbook/symbols.html)
 * [Fantasy Land](https://github.com/fantasyland/fantasy-land)
 * [The Iterator Protocol](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols)

@@ -2,9 +2,9 @@ use std::panic::Location;
 use std::str::pattern::Pattern;
 use std::any::type_name;
 use std::fmt::Display;
-use std::fmt::Write;
 use std::str::pattern::SearchStep;
 use std::str::pattern::Searcher;
+use std::error::Error;
 
 #[derive(Debug)]
 pub struct ParseError {
@@ -19,7 +19,9 @@ impl Display for ParseError {
 		writeln!(f, r#"{}: "{}""#, self.at.0, self.line)
 	}
 }
-type ParseResult<O> = Result<O, ParseError>;
+impl Error for ParseError {}
+
+pub type ParseResult<O> = Result<O, ParseError>;
 
 #[derive(Debug)]
 pub struct Input<'i> {
@@ -36,24 +38,31 @@ impl<'i> From<&'i str> for Input<'i> {
 		}
 	}
 }
+#[allow(unused)]
 impl<'i> Input<'i> {
+	fn input(&self) -> &'i str {
+		&self.input[self.consumed..]
+	}
 	fn line_idx(&self, index: usize) -> usize {
 		let t = self.lines.binary_search(&index);
-		println!("{:?}", t);
 		match t {
 			Ok(n) => n,
 			Err(n) => n
 		}
 	}
 	fn ln_cn_line(&self, index: usize) -> (usize, usize, &str) {
-		let li = self.line_idx(self.consumed);
-		let line_start = self.lines.get(li).cloned().unwrap_or(0);
-		let cn = self.consumed - line_start;
-		let line_end = self.lines.get(li + 1).cloned().unwrap_or(self.input.len());
+		let li = self.line_idx(index);
+		let line_start = if li == 0 {
+			0
+		} else {
+			self.lines[li - 1] + 1
+		};
+		let cn = index - line_start;
+		let line_end = self.lines.get(li).cloned().unwrap_or(self.input.len());
 		(li + 1, cn, &self.input[line_start..line_end])
 	}
 	#[track_caller]
-	fn error(&self, expected: &'static str) -> ParseError {
+	pub fn error(&self, expected: &'static str) -> ParseError {
 		let (ln, cn, line) = self.ln_cn_line(self.consumed);
 		ParseError {
 			caller: Location::caller(),
@@ -81,9 +90,10 @@ impl<'i> Input<'i> {
 		}
 		v
 	}
+	// TODO: So... I'm not really sure how patterns are supposed to work and I'm not sure if the searcher is actually supposed to be in a loop or not.  Should input.expect_pattern("aa") take all of the a's in "aaaaaa" or not? Fuck.
 	#[track_caller]
 	pub fn expect_pattern<P: Pattern<'i>>(&mut self, p: P) -> ParseResult<&'i str> {
-		let mut searcher = p.into_searcher(&self.input[self.consumed..]);
+		let mut searcher = p.into_searcher(self.input());
 		let mut b = 0;
 		while let SearchStep::Match(_, nb) = searcher.next() {
 			b = nb;
@@ -95,6 +105,56 @@ impl<'i> Input<'i> {
 		} else {
 			Err(self.error(type_name::<P>()))
 		}
+	}
+	#[track_caller]
+	pub fn expect_antipattern<P: Pattern<'i>>(&mut self, p: P) -> ParseResult<&'i str> {
+		let mut searcher = p.into_searcher(self.input());
+		let mut b = 0;
+		Ok(loop {
+			match searcher.next() {
+				SearchStep::Done => {
+					break self.input();
+				},
+				SearchStep::Reject(_, nb) => {
+					b = nb;
+				},
+				_ => {
+					let ret = &self.input[self.consumed..self.consumed + b];
+					self.consumed += b;
+					break ret;
+				}
+			}
+		})
+	}
+	#[track_caller]
+	pub fn expect_lineend(&mut self) -> ParseResult<()> {
+		// Expect a line termination or the end of input
+		if self.consumed == self.input.len() {
+			Ok(())
+		} else if self.input().starts_with("\r\n") {
+			self.consumed += 2;
+			Ok(())
+		} else if self.input().starts_with('\n') {
+			self.consumed += 1;
+			Ok(())
+		} else {
+			Err(self.error("<Newline or EOI>"))
+		}
+	}
+	#[track_caller]
+	pub fn expect_eoi(&mut self) -> ParseResult<()> {
+		if self.consumed == self.input.len() {
+			Ok(())
+		} else {
+			Err(self.error("<EOI>"))
+		}
+	}
+	#[track_caller]
+	pub fn expect_line(&mut self) -> ParseResult<&'i str> {
+		// Take a string until hitting a newline (consuming both the string and the newline)
+		let ret = self.expect_pattern(|c: char| c != '\r' && c != '\n')?;
+		self.expect_lineend()?;
+		Ok(ret)
 	}
 }
 
@@ -108,6 +168,20 @@ impl<'i, O: 'i, T: FnMut(&mut Input<'i>) -> ParseResult<O>> Parser<'i> for T {
 		self(input)
 	}
 }
+impl<'i> Parser<'i> for &'static str {
+	type Output = &'i str;
+	fn parse(&mut self, input: &mut Input<'i>) -> ParseResult<Self::Output> {
+		input.expect_pattern(*self)
+	}
+}
+
+// pub struct PatternParser<P>(P);
+// impl<'i, P: Pattern<'i>> Parser<'i> for PatternParser<P> {
+// 	type Output = &'i str;
+// 	fn parse(&mut self, input: &mut Input<'i>) -> ParseResult<Self::Output> {
+// 		input.expect_pattern(self.0)
+// 	}
+// }
 
 #[cfg(test)]
 mod tests {
