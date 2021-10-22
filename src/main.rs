@@ -5,6 +5,8 @@ use std::{io::Write, fs::{
 
 mod parser;
 mod parser2;
+mod packrat;
+mod justwrite;
 use parser2::Input;
 
 fn render_document(mut output: File, contents: &str) -> io::Result<()> {

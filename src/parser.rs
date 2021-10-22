@@ -233,7 +233,7 @@ pub enum Inline<'i> {
 }
 
 fn parse_inline<'i>(input: &mut Input<'i>) -> ParseResult<Inline<'i>> {
-	
+	unimplemented!()
 }
 
 pub fn parse_document<'i>(input: &mut Input<'i>) -> ParseResult<Document<'i>> {
