@@ -1,22 +1,26 @@
 #![feature(option_result_contains, path_try_exists, if_let_guard, pattern)]
-use std::{io::Write, fs::{
-	self, File
-}, io, path::{PathBuf, Path}};
+use std::{
+	fs::{self, File},
+	io,
+	io::Write,
+	path::{Path, PathBuf},
+};
 
+mod packrat;
 mod parser;
 mod parser2;
-mod packrat;
-mod justwrite;
+// mod justwrite;
 use parser2::Input;
 
 fn render_document(mut output: File, contents: &str) -> io::Result<()> {
 	let mut input = Input::from(contents);
-	let document = parser::parse_document(&mut input).map_err(|e| io::Error::new(
-		io::ErrorKind::Other, e))?;
+	let document =
+		parser::parse_document(&mut input).map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
 	println!("{:#?}", document);
 	let o = &mut output;
-	write!(o, 
-r#"<!DOCTYPE html>
+	write!(
+		o,
+		r#"<!DOCTYPE html>
 <html lang="en">
 	<head>
 		<meta charset="UTF-8">
@@ -34,22 +38,26 @@ r#"<!DOCTYPE html>
 				<a href="/projects/">Projects</a>
 			</nav>
 		</header>
-		<main>"#, document.header.title, document.header.description)?;
+		<main>"#,
+		document.header.title, document.header.description
+	)?;
 
-	
-	write!(o, r#"
+	write!(
+		o,
+		r#"
 		</main>
 		<footer>
 
 		</footer>
 	</body>
-</html>"#)?;
+</html>"#
+	)?;
 	Ok(())
 }
 
 struct Site {
 	src: PathBuf,
-	dest: PathBuf
+	dest: PathBuf,
 }
 impl Site {
 	fn handle_dir(&self, dir: &Path) -> io::Result<()> {
@@ -90,7 +98,10 @@ impl Site {
 					fs::copy(path, dest)?;
 				}
 			} else {
-				panic!("Symlinks are not allowed in the content directory: {:?}", path);
+				panic!(
+					"Symlinks are not allowed in the content directory: {:?}",
+					path
+				);
 			}
 		}
 
@@ -104,10 +115,12 @@ impl Site {
 }
 impl Default for Site {
 	fn default() -> Self {
-		Self { src: PathBuf::from("content"), dest: PathBuf::from("public") }
+		Self {
+			src: PathBuf::from("content"),
+			dest: PathBuf::from("public"),
+		}
 	}
 }
-
 
 fn main() -> io::Result<()> {
 	Site::default().build()?;

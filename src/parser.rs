@@ -1,11 +1,11 @@
 #![allow(unused)]
-use std::collections::HashMap;
 use super::parser2::{Input, ParseResult};
+use std::collections::HashMap;
 
 #[derive(Debug)]
 pub struct Author<'i> {
 	pub name: &'i str,
-	pub email: Option<&'i str>
+	pub email: Option<&'i str>,
 }
 #[derive(Debug)]
 pub struct DocumentHeader<'i> {
@@ -14,7 +14,7 @@ pub struct DocumentHeader<'i> {
 	pub keywords: Vec<&'i str>,
 	pub authors: Vec<Author<'i>>,
 	pub draft: bool,
-	pub meta: HashMap<&'i str, &'i str>
+	pub meta: HashMap<&'i str, &'i str>,
 }
 
 fn parse_header_title<'i>(input: &mut Input<'i>) -> ParseResult<&'i str> {
@@ -43,12 +43,15 @@ fn parse_header_keywords<'i>(input: &mut Input<'i>) -> ParseResult<Vec<&'i str>>
 }
 fn parse_header_authors<'i>(input: &mut Input<'i>) -> ParseResult<Vec<Author<'i>>> {
 	let mut author = |input: &mut Input<'i>| -> ParseResult<Author<'i>> {
-		let name = input.expect_pattern(|c: char| c.is_alphabetic() || (c.is_whitespace() && c != '\n'))?;
+		let name = input
+			.expect_pattern(|c: char| c.is_alphabetic() || (c.is_whitespace() && c != '\n'))?;
 		let email = if let Ok(_) = input.expect_pattern('<') {
 			let email = input.expect_pattern(|c: char| c != '>' && c != '\n')?;
 			input.expect_pattern('>')?;
 			Some(email)
-		} else { None };
+		} else {
+			None
+		};
 		Ok(Author { name, email })
 	};
 	let mut authors = vec![input.expect(&mut author)?];
@@ -73,10 +76,17 @@ pub fn parse_header<'i>(input: &mut Input<'i>) -> ParseResult<DocumentHeader<'i>
 				"keywords" => keywords = parse_header_keywords(&mut Input::from(v)).unwrap(),
 				"authors" => authors = parse_header_authors(&mut Input::from(v)).unwrap(),
 				"draft" => draft = v.parse::<bool>().unwrap_or(true),
-				_ => { meta.insert(k, v); }
+				_ => {
+					meta.insert(k, v);
+				}
 			}
 		} else {
-			match [title.is_empty(), description.is_empty(), keywords.is_empty(), authors.is_empty()] {
+			match [
+				title.is_empty(),
+				description.is_empty(),
+				keywords.is_empty(),
+				authors.is_empty(),
+			] {
 				[false, true, _, _] => description = input.expect_line()?,
 				[false, false, true, _] => {
 					if let Ok(k) = parse_header_keywords(input) {
@@ -84,28 +94,33 @@ pub fn parse_header<'i>(input: &mut Input<'i>) -> ParseResult<DocumentHeader<'i>
 					} else {
 						return Err(input.error("Header keywords line."));
 					}
-				},
+				}
 				[false, false, false, true] => {
 					if let Ok(a) = parse_header_authors(input) {
 						authors = a
 					} else {
 						return Err(input.error("Header authors line."));
 					}
-				},
-				_ => return Err(input.error("A property header line, "))
+				}
+				_ => return Err(input.error("A property header line, ")),
 			}
 		}
 	}
 
 	Ok(DocumentHeader {
-		title, description, keywords, authors, draft, meta
+		title,
+		description,
+		keywords,
+		authors,
+		draft,
+		meta,
 	})
 }
 
 #[derive(Debug)]
 pub struct Document<'i> {
 	pub header: DocumentHeader<'i>,
-	pub blocks: Vec<Block<'i>>
+	pub blocks: Vec<Block<'i>>,
 }
 
 #[derive(Debug)]
@@ -117,14 +132,14 @@ pub enum Block<'i> {
 	HtmlTag(&'i str, Attributes<'i>, Vec<Block<'i>>),
 	UList(Attributes<'i>, Vec<Block<'i>>),
 	OList(Attributes<'i>, Vec<Block<'i>>),
-	Raw(&'i str)
+	Raw(&'i str),
 }
 
 #[derive(Debug)]
 pub struct Attributes<'i> {
 	classes: Vec<&'i str>,
 	id: Option<&'i str>,
-	attributes: HashMap<&'i str, &'i str>
+	attributes: HashMap<&'i str, &'i str>,
 }
 
 fn ctori(c: char) -> bool {
@@ -158,7 +173,11 @@ fn parse_attributes<'i>(input: &mut Input<'i>) -> ParseResult<Attributes<'i>> {
 			}
 			input.expect_pattern('}');
 		} else {
-			break Ok(Attributes{ classes, id, attributes });
+			break Ok(Attributes {
+				classes,
+				id,
+				attributes,
+			});
 		}
 	}
 }
@@ -177,7 +196,8 @@ fn parse_block<'i>(current_indent: usize, input: &mut Input<'i>) -> ParseResult<
 	} else if let Ok(tag_name) = input.expect_pattern(&mut ctori) {
 		let attributes = parse_attributes(input)?;
 		input.expect_lineend()?;
-		let blocks = input.expect_star(&mut |input: &mut Input<'i>| parse_block(current_indent + 1, input));
+		let blocks =
+			input.expect_star(&mut |input: &mut Input<'i>| parse_block(current_indent + 1, input));
 		Ok(Block::HtmlTag(tag_name, attributes, blocks))
 	} else if let Ok(_) = input.expect_pattern("```") {
 		let language = input.expect_pattern(&mut ctori)?;
@@ -199,17 +219,21 @@ fn parse_block<'i>(current_indent: usize, input: &mut Input<'i>) -> ParseResult<
 		let attributes = parse_attributes(input)?;
 		let _ = input.expect_pattern(' ');
 		let mut blocks = vec![parse_block(current_indent, input)?];
-		while let Ok(b) = parse_block(current_indent + 1, input) {
-			
-		}
+		while let Ok(b) = parse_block(current_indent + 1, input) {}
 		Ok(Block::OList(attributes, blocks))
 	} else if let Ok(_) = input.expect_pattern('*') {
-		Ok(Block::UList(parse_attributes(input)?, input.expect_star(&mut |input: &mut Input<'i>| parse_block(current_indent + 1, input))))
+		Ok(Block::UList(
+			parse_attributes(input)?,
+			input.expect_star(&mut |input: &mut Input<'i>| parse_block(current_indent + 1, input)),
+		))
 	} else {
 		// Paragraph
 		let attributes = parse_attributes(input)?;
 		let _ = input.expect_pattern(char::is_whitespace);
-		Ok(Block::Paragraph(attributes, input.expect_star(&mut parse_inline)))
+		Ok(Block::Paragraph(
+			attributes,
+			input.expect_star(&mut parse_inline),
+		))
 	}
 }
 
@@ -229,7 +253,7 @@ pub enum Inline<'i> {
 	Superscript(Vec<Inline<'i>>),
 	Subscript(Vec<Inline<'i>>),
 	RawHTML(&'i str),
-	Symbol(char)
+	Symbol(char),
 }
 
 fn parse_inline<'i>(input: &mut Input<'i>) -> ParseResult<Inline<'i>> {

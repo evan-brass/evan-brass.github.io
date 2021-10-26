@@ -1,10 +1,10 @@
+use std::any::type_name;
+use std::error::Error;
+use std::fmt::Display;
 use std::panic::Location;
 use std::str::pattern::Pattern;
-use std::any::type_name;
-use std::fmt::Display;
 use std::str::pattern::SearchStep;
 use std::str::pattern::Searcher;
-use std::error::Error;
 
 #[derive(Debug)]
 pub struct ParseError {
@@ -15,7 +15,11 @@ pub struct ParseError {
 }
 impl Display for ParseError {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-		writeln!(f, "Parsing failed, {} expected {} at col {}:", self.caller, self.expected, self.at.1)?;
+		writeln!(
+			f,
+			"Parsing failed, {} expected {} at col {}:",
+			self.caller, self.expected, self.at.1
+		)?;
 		writeln!(f, r#"{}: "{}""#, self.at.0, self.line)
 	}
 }
@@ -27,14 +31,14 @@ pub type ParseResult<O> = Result<O, ParseError>;
 pub struct Input<'i> {
 	lines: Vec<usize>,
 	input: &'i str,
-	consumed: usize
+	consumed: usize,
 }
 impl<'i> From<&'i str> for Input<'i> {
 	fn from(s: &'i str) -> Self {
 		Self {
 			lines: s.match_indices('\n').map(|(i, _)| i).collect(),
 			input: s,
-			consumed: 0
+			consumed: 0,
 		}
 	}
 }
@@ -47,16 +51,12 @@ impl<'i> Input<'i> {
 		let t = self.lines.binary_search(&index);
 		match t {
 			Ok(n) => n,
-			Err(n) => n
+			Err(n) => n,
 		}
 	}
 	fn ln_cn_line(&self, index: usize) -> (usize, usize, &str) {
 		let li = self.line_idx(index);
-		let line_start = if li == 0 {
-			0
-		} else {
-			self.lines[li - 1] + 1
-		};
+		let line_start = if li == 0 { 0 } else { self.lines[li - 1] + 1 };
 		let cn = index - line_start;
 		let line_end = self.lines.get(li).cloned().unwrap_or(self.input.len());
 		(li + 1, cn, &self.input[line_start..line_end])
@@ -68,7 +68,7 @@ impl<'i> Input<'i> {
 			caller: Location::caller(),
 			expected,
 			at: (ln, cn),
-			line: line.into()
+			line: line.into(),
 		}
 	}
 	#[track_caller]
@@ -114,10 +114,10 @@ impl<'i> Input<'i> {
 			match searcher.next() {
 				SearchStep::Done => {
 					break self.input();
-				},
+				}
 				SearchStep::Reject(_, nb) => {
 					b = nb;
-				},
+				}
 				_ => {
 					let ret = &self.input[self.consumed..self.consumed + b];
 					self.consumed += b;
