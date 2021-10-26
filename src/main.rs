@@ -9,7 +9,7 @@ use std::{
 mod packrat;
 mod parser;
 mod parser2;
-// mod justwrite;
+mod justwrite;
 use parser2::Input;
 
 fn render_document(mut output: File, contents: &str) -> io::Result<()> {

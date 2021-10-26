@@ -37,16 +37,15 @@ impl<'i> Lexer<'i> for NoLex<'i> {
 	}
 }
 
-pub trait Parser<'i, L: Lexer<'i>>: Any {
+pub trait Parser<'i, L: Lexer<'i>> {
 	type Output: 'i + Clone;
 	fn parse(&self, pr: &mut PackRat<'i, L>) -> Option<Self::Output>;
-	fn is_recursive(&self) -> bool { false } // Potential problem... We have a blanket implementation of Parser for functions which doesn't handle them being potentially recursive.
 }
 impl<'i, O, L, T> Parser<'i, L> for T
 where
 	O: 'i + Clone,
 	L: Lexer<'i>,
-	T: 'static + Fn(&mut PackRat<'i, L>) -> Option<O>,
+	T: 'static + Fn(&mut PackRat<'i, L>) -> Option<O> + std::hash::Hash,
 {
 	type Output = O;
 	fn parse(&self, pr: &mut PackRat<'i, L>) -> Option<Self::Output> {
@@ -71,7 +70,7 @@ pub enum ParseError<'i, L: Lexer<'i>> {
 }
 
 #[derive(Debug)]
-pub struct PackRat<'i, L: Lexer<'i> = NoLex<'i>, C = Box<dyn Any>> {
+pub struct PackRat<'i, L: Lexer<'i> = NoLex<'i>> {
 	lexer: L,
 	lexer_done: bool,
 	tokens: Vec<(&'i str, Result<Option<L::Specials>, L::LexError>)>,
@@ -79,7 +78,7 @@ pub struct PackRat<'i, L: Lexer<'i> = NoLex<'i>, C = Box<dyn Any>> {
 	str_consumed: usize,
 	errors: Vec<(usize, usize, ParseError<'i, L>)>,
 	// TODO: add a map that stores rescursive depth.
-	memo: HashMap<(usize, usize, TypeId), C>, // TODO: Memoize the rules and handle left recursion
+	memo: HashMap<(usize, usize, TypeId), (usize, usize, Box<dyn Any>)>,
 }
 impl<'i, L: Lexer<'i>> PackRat<'i, L> {
 	pub fn new(s: &'i str) -> Self {
@@ -98,9 +97,9 @@ impl<'i, L: Lexer<'i>> PackRat<'i, L> {
 			if !self.lexer_done {
 				if let Some(tok) = self.lexer.next() {
 					// The token must either have a lex error or a special or there must be some input:
-					// assert!(tok.1.is_err() || tok.1.unwrap_or(None).is_some() || !tok.0.is_empty());
+					assert!(tok.1.is_err() || tok.1.unwrap_or(None).is_some() || !tok.0.is_empty());
 					self.tokens.push(tok);
-					self.str_consumed = 0; // I'm not certain about this...
+					self.str_consumed = 0; // I'm not certain about this... but it's working...
 				} else {
 					self.lexer_done = true;
 					return None;
@@ -187,15 +186,24 @@ impl<'i, L: Lexer<'i>> PackRat<'i, L> {
 	}
 	// #[track_caller]
 	pub fn epar<P: Parser<'i, L>>(&mut self, par: P) -> Option<P::Output> {
-		let old_str_consumed = self.str_consumed;
-		let old_tokens_index = self.tokens_index;
-		let ret = par.parse(self);
-		if ret.is_none() {
-			// Restore packrat state if the parser failed to parse.
-			self.str_consumed = old_str_consumed;
-			self.tokens_index = old_tokens_index;
+		if let Some((new_c, new_i, bo)) = self.memo.get(&(
+			self.str_consumed, self.tokens_index, 
+			TypeId::of::<P>()
+		)) {
+			self.str_consumed = *new_c;
+			self.tokens_index = *new_i;
+			Some(bo.downcast_ref::<P::Output>().unwrap().clone())
+		} else {
+			let old_str_consumed = self.str_consumed;
+			let old_tokens_index = self.tokens_index;
+			let ret = par.parse(self);
+			if ret.is_none() {
+				// Restore packrat state if the parser failed to parse.
+				self.str_consumed = old_str_consumed;
+				self.tokens_index = old_tokens_index;
+			}
+			ret
 		}
-		ret
 	}
 	// #[track_caller]
 	pub fn is_eoi(&self) -> bool {
