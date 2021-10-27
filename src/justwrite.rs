@@ -1,12 +1,15 @@
+#![allow(unused)]
 use std::collections::HashMap;
 use crate::packrat::PackRat;
 
+#[derive(Clone)]
 struct Attributes<'i> {
 	id: Option<&'i str>,
 	classes: Vec<&'i str>,
 	attributes: HashMap<&'i str, &'i str>
 }
 
+#[derive(Clone)]
 enum Inline<'i> {
 	// Inline Limited
 	Strong(&'i str),
@@ -25,7 +28,7 @@ enum Inline<'i> {
 	Tag(&'i str),
 	Newline
 }
-
+#[derive(Clone)]
 enum Block<'i> {
 	Paragraph(Vec<Inline<'i>>),
 	HorizontalRule(Attributes<'i>),
@@ -40,30 +43,30 @@ enum Block<'i> {
 fn ctori(c: char) -> bool {
 	c.is_ascii_alphanumeric() || c == '-' || c == '_'
 }
+fn key_value<'i>(input: &mut PackRat<'i>) -> Option<(&'i str, &'i str)> {
+	let k = input.epat(ctori)?;
+	input.epat(':')?;
+	let _ = input.epat(char::is_whitespace);
+	input.epat('"')?;
+	let v = input.epat(|c| c != '"')?;
+	input.epat('"')?;
+	Some((k, v))
+}
 fn parse_attributes<'i>(input: &mut PackRat<'i>) -> Option<Attributes<'i>> {
 	let mut classes = vec![];
 	let mut id = None;
 	let mut attributes = HashMap::new();
-	let mut kv = |input: &mut PackRat<'i>| -> Option<(&'i str, &'i str)> {
-		let k = input.epat(ctori)?;
-		input.epat(':')?;
-		let _ = input.epat(char::is_whitespace);
-		input.epat('"')?;
-		let v = input.epat(|c| c != '"')?;
-		input.epat('"')?;
-		Some((k, v))
-	};
 	loop {
 		if let Some(_) = input.epat('.') {
 			classes.push(input.epat(ctori)?);
 		} else if let Some(_) = input.epat('#') {
 			id = Some(input.epat(ctori)?);
 		} else if let Some(_) = input.epat('{') {
-			let (k, v) = input.epar(&kv)?;
+			let (k, v) = input.epar(key_value)?;
 			attributes.insert(k, v);
 			while let Some(_) = input.epat(',') {
 				let _ = input.epat(char::is_whitespace);
-				let (k, v) = input.epar(&kv)?;
+				let (k, v) = input.epar(key_value)?;
 				attributes.insert(k, v);
 			}
 			input.epat('}');
@@ -77,6 +80,13 @@ fn parse_attributes<'i>(input: &mut PackRat<'i>) -> Option<Attributes<'i>> {
 	}
 }
 
-fn parse_inline_limited<'i>(input: &mut PackRat<'i>) -> Option<Inline<'i>> {
+fn parse_strong<'i>(input: &mut PackRat<'i>) -> Option<Inline<'i>> {
+	input.epat("*")?;
+	let inner = vec![input.epar(parse_inline_limited)?];
+	input.epat("*")?;
+	Some(Inline::Strong(""))
+}
 
+fn parse_inline_limited<'i>(input: &mut PackRat<'i>) -> Option<Inline<'i>> {
+	parse_strong(input)
 }

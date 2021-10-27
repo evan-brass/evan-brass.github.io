@@ -61,36 +61,36 @@ enum ABCToken {
 	A, B, C
 }
 struct ABCLex<'i> {
-	input: &'i str,
-	consumed: usize
+	input: &'i str
 }
 impl<'i> Iterator for ABCLex<'i> {
-	type Item = (&'i str, Result<Option<ABCToken>, ()>);
+	type Item = LexRes<'i, ABCToken, ()>;
 	fn next(&mut self) -> Option<Self::Item> {
-		if self.consumed == self.input.len() {
+		if self.input.is_empty() {
 			None
 		} else {
-			let input = &self.input[self.consumed..];
-			if let Some(i) = input.find(|c: char| c == 'a' || c == 'b' || c == 'c') {
-				self.consumed += i + 1;
-				Some((&input[..i], Ok(Some(match &input[i..(i+1)] {
+			let is_abc = |c: char| c == 'a' || c == 'b' || c == 'c';
+			if let Some(c) = take_pattern(&mut self.input, is_abc) {
+				Some(LexRes::Token(match c {
 					"a" => ABCToken::A,
 					"b" => ABCToken::B,
 					"c" => ABCToken::C,
 					_ => unreachable!()
-				}))))
+				}))
 			} else {
-				self.consumed = self.input.len();
-				Some((input, Ok(None)))
+				let end = self.input.find(is_abc).unwrap_or(self.input.len());
+				let ret = &self.input[..end];
+				self.input = &self.input[end..];
+				Some(LexRes::Text(ret))
 			}
 		}
 	}
 }
 impl<'i> Lexer<'i> for ABCLex<'i> {
-	type Specials = ABCToken;
+	type Token = ABCToken;
 	type LexError = ();
 	fn new(input: &'i str) -> Self {
-		Self {input, consumed: 0}
+		Self {input}
 	}
 }
 

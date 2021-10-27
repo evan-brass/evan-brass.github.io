@@ -4,13 +4,27 @@ use std::collections::HashMap;
 use std::panic::Location;
 use std::str::pattern::Pattern;
 
+pub fn take_pattern<'i, P: Pattern<'i>>(input: &mut &'i str, p: P) -> Option<&'i str> {
+	let rest = input.strip_prefix(p)?;
+	let mut prefix = &input[..(input.len() - rest.len())];
+	*input = rest;
+	Some(prefix)
+}
+
 #[cfg(test)]
 mod tests;
 
+#[derive(Debug, Clone, PartialEq)]
+pub enum LexRes<'i, S, E> {
+	// Some lexers emit only text or only token items.
+	Text(&'i str),
+	Token(S),
+	LexError(E)
+}
 pub trait Lexer<'i>:
-	Iterator<Item = (&'i str, Result<Option<Self::Specials>, Self::LexError>)>
+	Iterator<Item = LexRes<'i, Self::Token, Self::LexError>>
 {
-	type Specials: 'i + PartialEq + Clone + Copy;
+	type Token: 'i + PartialEq + Clone + Copy;
 	type LexError: 'i + std::fmt::Debug + Clone;
 
 	fn new(s: &'i str) -> Self;
@@ -18,40 +32,26 @@ pub trait Lexer<'i>:
 
 pub struct NoLex<'i>(&'i str);
 impl<'i> Iterator for NoLex<'i> {
-	type Item = (&'i str, Result<Option<()>, ()>);
+	type Item = LexRes<'i, (), ()>;
 	fn next(&mut self) -> Option<Self::Item> {
 		if !self.0.is_empty() {
-			let ret = Some((self.0, Ok(None)));
+			let ret = LexRes::Text(self.0);
 			self.0 = "";
-			ret
+			Some(ret)
 		} else {
 			None
 		}
 	}
 }
 impl<'i> Lexer<'i> for NoLex<'i> {
-	type Specials = ();
+	type Token = ();
 	type LexError = ();
 	fn new(s: &'i str) -> Self {
 		Self(s)
 	}
 }
 
-pub trait Parser<'i, L: Lexer<'i>> {
-	type Output: 'i + Clone;
-	fn parse(&self, pr: &mut PackRat<'i, L>) -> Option<Self::Output>;
-}
-impl<'i, O, L, T> Parser<'i, L> for T
-where
-	O: 'i + Clone,
-	L: Lexer<'i>,
-	T: 'static + Fn(&mut PackRat<'i, L>) -> Option<O> + std::hash::Hash,
-{
-	type Output = O;
-	fn parse(&self, pr: &mut PackRat<'i, L>) -> Option<Self::Output> {
-		self(pr)
-	}
-}
+pub type Parser<'i, L, O> = fn(&mut PackRat<'i, L>) -> Option<O>;
 
 #[derive(Debug)]
 pub enum ParseError<'i, L: Lexer<'i>> {
@@ -61,7 +61,7 @@ pub enum ParseError<'i, L: Lexer<'i>> {
 	},
 	ExpectedToken {
 		caller: &'static Location<'static>,
-		expected: L::Specials,
+		expected: L::Token,
 	},
 	ExpectedPattern {
 		caller: &'static Location<'static>,
@@ -73,12 +73,12 @@ pub enum ParseError<'i, L: Lexer<'i>> {
 pub struct PackRat<'i, L: Lexer<'i> = NoLex<'i>> {
 	lexer: L,
 	lexer_done: bool,
-	tokens: Vec<(&'i str, Result<Option<L::Specials>, L::LexError>)>,
+	tokens: Vec<LexRes<'i, L::Token, L::LexError>>,
 	tokens_index: usize,
 	str_consumed: usize,
 	errors: Vec<(usize, usize, ParseError<'i, L>)>,
 	// TODO: add a map that stores rescursive depth.
-	memo: HashMap<(usize, usize, TypeId), (usize, usize, Box<dyn Any>)>,
+	memo: HashMap<(usize, usize, usize), Option<(usize, usize, Box<()>)>>,
 }
 impl<'i, L: Lexer<'i>> PackRat<'i, L> {
 	pub fn new(s: &'i str) -> Self {
@@ -92,12 +92,17 @@ impl<'i, L: Lexer<'i>> PackRat<'i, L> {
 			memo: HashMap::new(),
 		}
 	}
-	fn get_lex_res(&mut self) -> Option<(&'i str, Result<Option<L::Specials>, L::LexError>)> {
+	fn get_lex_res(&mut self) -> Option<LexRes<'i, L::Token, L::LexError>> {
+		if let Some(LexRes::Text(t)) = self.tokens.get(self.tokens_index) {
+			if t.len() == self.str_consumed {
+				self.tokens_index += 1;
+				self.str_consumed = 0;
+			}
+		}
 		if self.tokens_index == self.tokens.len() {
 			if !self.lexer_done {
 				if let Some(tok) = self.lexer.next() {
 					// The token must either have a lex error or a special or there must be some input:
-					assert!(tok.1.is_err() || tok.1.unwrap_or(None).is_some() || !tok.0.is_empty());
 					self.tokens.push(tok);
 					self.str_consumed = 0; // I'm not certain about this... but it's working...
 				} else {
@@ -112,27 +117,9 @@ impl<'i, L: Lexer<'i>> PackRat<'i, L> {
 	}
 	// Get the next token but don't advance the token index.
 	// #[track_caller]
-	pub fn get_token(&mut self) -> Option<L::Specials> {
-		let tok = self.get_lex_res()?;
-		if self.str_consumed == tok.0.len() {
-			match tok.1 {
-				Ok(None) => {
-					self.tokens_index += 1;
-					self.get_token()
-				}
-				Ok(Some(s)) => Some(s),
-				Err(e) => {
-					self.errors.push((
-						self.tokens_index,
-						self.str_consumed,
-						ParseError::LexError {
-							caller: Location::caller(),
-							e,
-						},
-					));
-					None
-				}
-			}
+	pub fn get_token(&mut self) -> Option<L::Token> {
+		if let LexRes::Token(tok) = self.get_lex_res()? {
+			Some(tok)
 		} else {
 			None
 		}
@@ -140,22 +127,14 @@ impl<'i, L: Lexer<'i>> PackRat<'i, L> {
 	// Get the next input but don't advance the consumed or token index.
 	// #[track_caller]
 	pub fn get_input(&mut self) -> Option<&'i str> {
-		let tok = self.get_lex_res()?;
-		if self.str_consumed == tok.0.len() {
-			if let Ok(None) = tok.1 {
-				self.str_consumed = 0;
-				self.tokens_index += 1;
-				self.get_input()
-			} else {
-				None
-			}
+		if let LexRes::Text(text) = self.get_lex_res()? {
+			Some(&text[self.str_consumed..])
 		} else {
-			Some(&tok.0[self.str_consumed..])
+			None
 		}
 	}
-	// TODO: Enable retreiving a single pattern / token without expecting it?
 	// #[track_caller]
-	pub fn etok<T: PartialEq<L::Specials>>(&mut self, tok: T) -> Option<L::Specials> {
+	pub fn etok<T: PartialEq<L::Token>>(&mut self, tok: T) -> Option<L::Token> {
 		let t = self.get_token()?;
 		if tok == t {
 			self.tokens_index += 1;
@@ -165,7 +144,7 @@ impl<'i, L: Lexer<'i>> PackRat<'i, L> {
 		}
 	}
 	// #[track_caller]
-	pub fn epat<P: Pattern<'i> + Any>(&mut self, pat: P) -> Option<&'i str> {
+	pub fn epat<P: Pattern<'i>>(&mut self, pat: P) -> Option<&'i str> {
 		let i = self.get_input()?;
 		if let Some(postfix) = i.strip_prefix(pat) {
 			let prefix_len = i.len() - postfix.len();
@@ -185,18 +164,30 @@ impl<'i, L: Lexer<'i>> PackRat<'i, L> {
 		}
 	}
 	// #[track_caller]
-	pub fn epar<P: Parser<'i, L>>(&mut self, par: P) -> Option<P::Output> {
-		if let Some((new_c, new_i, bo)) = self.memo.get(&(
-			self.str_consumed, self.tokens_index, 
-			TypeId::of::<P>()
+	pub fn epar<O: Clone>(&mut self, par: Parser<'i, L, O>) -> Option<O> {
+		if let Some(ret) = self.memo.get(&(
+			self.tokens_index,
+			self.str_consumed,
+			par as usize
 		)) {
-			self.str_consumed = *new_c;
-			self.tokens_index = *new_i;
-			Some(bo.downcast_ref::<P::Output>().unwrap().clone())
+			if let Some((new_i, new_c, o)) = ret {
+				self.tokens_index = *new_i;
+				self.str_consumed = *new_c;
+				let o = unsafe { std::mem::transmute::<&Box<()>, &Box<O>>(o) };
+				Some(*o.clone())
+			} else {
+				None
+			}
 		} else {
 			let old_str_consumed = self.str_consumed;
 			let old_tokens_index = self.tokens_index;
-			let ret = par.parse(self);
+			let ret = par(self);
+			self.memo.insert(
+				(old_tokens_index, old_str_consumed, par as usize),
+				ret.clone().map(|o| (self.tokens_index, self.str_consumed, unsafe {
+					std::mem::transmute::<Box<O>, Box<()>>(Box::new(o.clone()))
+				}))
+			);
 			if ret.is_none() {
 				// Restore packrat state if the parser failed to parse.
 				self.str_consumed = old_str_consumed;
