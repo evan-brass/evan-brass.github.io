@@ -19,11 +19,9 @@ pub enum LexRes<'i, S, E> {
 	// Some lexers emit only text or only token items.
 	Text(&'i str),
 	Token(S),
-	LexError(E)
+	LexError(E),
 }
-pub trait Lexer<'i>:
-	Iterator<Item = LexRes<'i, Self::Token, Self::LexError>>
-{
+pub trait Lexer<'i>: Iterator<Item = LexRes<'i, Self::Token, Self::LexError>> {
 	type Token: 'i + PartialEq + Clone + Copy;
 	type LexError: 'i + std::fmt::Debug + Clone;
 
@@ -165,11 +163,10 @@ impl<'i, L: Lexer<'i>> PackRat<'i, L> {
 	}
 	// #[track_caller]
 	pub fn epar<O: Clone>(&mut self, par: Parser<'i, L, O>) -> Option<O> {
-		if let Some(ret) = self.memo.get(&(
-			self.tokens_index,
-			self.str_consumed,
-			par as usize
-		)) {
+		if let Some(ret) = self
+			.memo
+			.get(&(self.tokens_index, self.str_consumed, par as usize))
+		{
 			if let Some((new_i, new_c, o)) = ret {
 				self.tokens_index = *new_i;
 				self.str_consumed = *new_c;
@@ -184,9 +181,11 @@ impl<'i, L: Lexer<'i>> PackRat<'i, L> {
 			let ret = par(self);
 			self.memo.insert(
 				(old_tokens_index, old_str_consumed, par as usize),
-				ret.clone().map(|o| (self.tokens_index, self.str_consumed, unsafe {
-					std::mem::transmute::<Box<O>, Box<()>>(Box::new(o.clone()))
-				}))
+				ret.clone().map(|o| {
+					(self.tokens_index, self.str_consumed, unsafe {
+						std::mem::transmute::<Box<O>, Box<()>>(Box::new(o.clone()))
+					})
+				}),
 			);
 			if ret.is_none() {
 				// Restore packrat state if the parser failed to parse.

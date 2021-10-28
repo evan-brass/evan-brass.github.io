@@ -19,7 +19,7 @@ fn t2() {
 		Bracket(Vec<AST>),
 		Brace(Vec<AST>),
 	}
-	let input = r"[][{}]{}{{}{}}";
+	let input = "[][{}]{}{{}{}}";
 	fn parse_items(pr: &mut PackRat) -> Vec<AST> {
 		let mut items = Vec::new();
 		loop {
@@ -58,10 +58,12 @@ fn t2() {
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 enum ABCToken {
-	A, B, C
+	A,
+	B,
+	C,
 }
 struct ABCLex<'i> {
-	input: &'i str
+	input: &'i str,
 }
 impl<'i> Iterator for ABCLex<'i> {
 	type Item = LexRes<'i, ABCToken, ()>;
@@ -75,7 +77,7 @@ impl<'i> Iterator for ABCLex<'i> {
 					"a" => ABCToken::A,
 					"b" => ABCToken::B,
 					"c" => ABCToken::C,
-					_ => unreachable!()
+					_ => unreachable!(),
 				}))
 			} else {
 				let end = self.input.find(is_abc).unwrap_or(self.input.len());
@@ -90,7 +92,7 @@ impl<'i> Lexer<'i> for ABCLex<'i> {
 	type Token = ABCToken;
 	type LexError = ();
 	fn new(input: &'i str) -> Self {
-		Self {input}
+		Self { input }
 	}
 }
 
