@@ -3,6 +3,7 @@ use std::any::{type_name, Any, TypeId};
 use std::collections::HashMap;
 use std::panic::Location;
 use std::str::pattern::Pattern;
+use std::iter::Fuse;
 
 pub fn take_pattern<'i, P: Pattern<'i>>(input: &mut &'i str, p: P) -> Option<&'i str> {
 	let rest = input.strip_prefix(p)?;
@@ -69,8 +70,7 @@ pub enum ParseError<'i, L: Lexer<'i>> {
 
 #[derive(Debug)]
 pub struct PackRat<'i, L: Lexer<'i> = NoLex<'i>> {
-	lexer: L,
-	lexer_done: bool,
+	lexer: Fuse<L>,
 	tokens: Vec<LexRes<'i, L::Token, L::LexError>>,
 	tokens_index: usize,
 	str_consumed: usize,
@@ -81,8 +81,7 @@ pub struct PackRat<'i, L: Lexer<'i> = NoLex<'i>> {
 impl<'i, L: Lexer<'i>> PackRat<'i, L> {
 	pub fn new(s: &'i str) -> Self {
 		Self {
-			lexer: L::new(s),
-			lexer_done: false,
+			lexer: L::new(s).fuse(),
 			tokens: Vec::new(),
 			tokens_index: 0,
 			str_consumed: 0,
@@ -98,18 +97,9 @@ impl<'i, L: Lexer<'i>> PackRat<'i, L> {
 			}
 		}
 		if self.tokens_index == self.tokens.len() {
-			if !self.lexer_done {
-				if let Some(tok) = self.lexer.next() {
-					// The token must either have a lex error or a special or there must be some input:
-					self.tokens.push(tok);
-					self.str_consumed = 0; // I'm not certain about this... but it's working...
-				} else {
-					self.lexer_done = true;
-					return None;
-				}
-			} else {
-				return None;
-			}
+			let tok = self.lexer.next()?;
+			self.tokens.push(tok);
+			self.str_consumed = 0; // I'm not certain about this... but it's working...
 		}
 		Some(self.tokens[self.tokens_index].clone())
 	}
@@ -196,8 +186,8 @@ impl<'i, L: Lexer<'i>> PackRat<'i, L> {
 		}
 	}
 	// #[track_caller]
-	pub fn is_eoi(&self) -> bool {
-		self.lexer_done && self.tokens_index == self.tokens.len()
+	pub fn is_eoi(&mut self) -> bool {
+		self.tokens_index == self.tokens.len() && self.get_lex_res().is_none()
 	}
 	// TODO: Support Left Recursion.
 }
