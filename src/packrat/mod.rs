@@ -60,11 +60,11 @@ pub enum ParseError<'i, L: Lexer<'i>> {
 	},
 	ExpectedToken {
 		caller: &'static Location<'static>,
-		expected: L::Token,
+		expected: String,
 	},
 	ExpectedPattern {
 		caller: &'static Location<'static>,
-		pattern: String, // TODO: How to represent the pattern?
+		expected: String, // TODO: How to represent the pattern?
 	},
 }
 
@@ -104,7 +104,6 @@ impl<'i, L: Lexer<'i>> PackRat<'i, L> {
 		Some(self.tokens[self.tokens_index].clone())
 	}
 	// Get the next token but don't advance the token index.
-	// #[track_caller]
 	pub fn get_token(&mut self) -> Option<L::Token> {
 		if let LexRes::Token(tok) = self.get_lex_res()? {
 			Some(tok)
@@ -113,7 +112,6 @@ impl<'i, L: Lexer<'i>> PackRat<'i, L> {
 		}
 	}
 	// Get the next input but don't advance the consumed or token index.
-	// #[track_caller]
 	pub fn get_input(&mut self) -> Option<&'i str> {
 		if let LexRes::Text(text) = self.get_lex_res()? {
 			Some(&text[self.str_consumed..])
@@ -121,17 +119,25 @@ impl<'i, L: Lexer<'i>> PackRat<'i, L> {
 			None
 		}
 	}
-	// #[track_caller]
-	pub fn etok<T: PartialEq<L::Token>>(&mut self, tok: T) -> Option<L::Token> {
+	#[track_caller]
+	pub fn etok<T: PartialEq<L::Token> + std::fmt::Debug>(&mut self, tok: T) -> Option<L::Token> {
 		let t = self.get_token()?;
 		if tok == t {
 			self.tokens_index += 1;
 			Some(t)
 		} else {
+			self.errors.push((
+				self.tokens_index,
+				self.str_consumed,
+				ParseError::ExpectedToken {
+					caller: Location::caller(),
+					expected: format!("{:?}", tok)
+				}
+			));
 			None
 		}
 	}
-	// #[track_caller]
+	#[track_caller]
 	pub fn epat<P: Pattern<'i>>(&mut self, pat: P) -> Option<&'i str> {
 		let i = self.get_input()?;
 		if let Some(postfix) = i.strip_prefix(pat) {
@@ -145,7 +151,7 @@ impl<'i, L: Lexer<'i>> PackRat<'i, L> {
 				self.str_consumed,
 				ParseError::ExpectedPattern {
 					caller: Location::caller(),
-					pattern: type_name::<P>().into(),
+					expected: type_name::<P>().into(),
 				},
 			));
 			None
@@ -178,6 +184,7 @@ impl<'i, L: Lexer<'i>> PackRat<'i, L> {
 				}),
 			);
 			if ret.is_none() {
+				// TODO: We actually should only reset before trying another option - that way we'll have more information to use when creating diagnostics.
 				// Restore packrat state if the parser failed to parse.
 				self.str_consumed = old_str_consumed;
 				self.tokens_index = old_tokens_index;
