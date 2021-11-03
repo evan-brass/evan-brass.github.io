@@ -157,7 +157,7 @@ impl<'i, L: Lexer<'i>> PackRat<'i, L> {
 			None
 		}
 	}
-	// #[track_caller]
+	#[track_caller]
 	pub fn epar<O: Clone>(&mut self, par: Parser<'i, L, O>) -> Option<O> {
 		if let Some(ret) = self
 			.memo

@@ -3,13 +3,22 @@ use std::iter::Peekable;
 
 use crate::packrat::{LexRes, Lexer as LexerTrait};
 
+const CONTROLS: &'static str = "*_`+-^~#\"'@![]()=";
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Token {
+pub enum Token<'i> {
 	Indent, Dedent,
 	Newline, BlankLine,
+	Control(char),
+	Tag<&'i str>
+}
+enum LexerState {
+	Newline,
+	Indent(usize),
+	Str
 }
 pub struct Lexer<'i> {
-	sent_newline: bool,
+	state: LexerState,
 	lines: Peekable<Lines<'i>>,
 	indentation: Vec<&'i str>
 }
@@ -17,18 +26,38 @@ impl<'i> Iterator for Lexer<'i> {
 	type Item = LexRes<'i, Token, ()>;
 	fn next(&mut self) -> Option<Self::Item> {
 		if let Some(l) = self.lines.peek() {
+			match self.state {
+				LexerState::Newline => {
+					self.state = LexerState::Indent(0);
+					return Some(LexRes::Token(if l.trim_start().is_empty() {
+						self.lines.next();
+						while self.lines.peek().map(|s| s.trim_start().is_empty()).unwrap_or(false) {
+							self.lines.next();
+						}
+						Token::BlankLine
+					} else {
+						Token::Newline
+					}))
+				},
+				LexerState::Indent(i) => {
+					
+					self.lines.peek_mut()
+				},
+				LexerState::Str => {
+	
+				}
+			}
+		} else if self.indentation.len() > 0 {
+			self.indentation.pop();
+			Some(LexRes::Token(Token::Dedent))
+		} else {
+			None
+		}
+		if let Some(l) = self.lines.peek() {
 			// Send a newline / blankline if needed
 			if !self.sent_newline {
 				self.sent_newline = true;
-				if l.trim_start().is_empty() {
-					self.lines.next();
-					while self.lines.peek().map(|s| s.trim_start().is_empty()).unwrap_or(false) {
-						self.lines.next();
-					}
-					return Some(LexRes::Token(Token::BlankLine))
-				} else {
-					return Some(LexRes::Token(Token::Newline))
-				}
+				
 			}
 			// Match against our current indentation
 			let mut line = *l;
@@ -49,12 +78,8 @@ impl<'i> Iterator for Lexer<'i> {
 			// Return the rest of the line
 			self.sent_newline = false;
 			self.lines.next();
+			// TODO: Handle symbols.
 			return Some(LexRes::Text(no_indent))
-		} else if self.indentation.len() > 0 {
-			self.indentation.pop();
-			Some(LexRes::Token(Token::Dedent))
-		} else {
-			None
 		}
 	}
 }
@@ -65,7 +90,7 @@ impl<'i> LexerTrait<'i> for Lexer<'i> {
 		Self {
 			lines: s.lines().peekable(),
 			indentation: Vec::new(),
-			sent_newline: true
+			state: LexState::Indent(0)
 		}
 	}
 }
