@@ -1,7 +1,8 @@
 use rocket_sync_db_pools::{rusqlite::{self, Row, Rows}};
+use serde::Serialize;
 use chrono::NaiveDate;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct Tag {
 	pub name: String,
 	pub slug: String
@@ -14,7 +15,7 @@ impl Tag {
 	}
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct Post {
 	pub id: u32,
 	pub title: String,
