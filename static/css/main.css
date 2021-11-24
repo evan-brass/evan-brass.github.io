@@ -1,0 +1,56 @@
+/* Primary Stylesheet Styles: */
+html {
+	scroll-behavior: smooth;
+}
+pre {
+	background-color: var(--background-accent);
+}
+aside {
+	border: 1px solid currentColor;
+	border-width: 1px 0;
+}
+a {
+	color: #005c92;
+}
+@media (prefers-color-scheme: dark) {
+	html {
+		background-color: #000;
+		color: #fff;
+		--background-accent: #222;
+	}
+	img.invert-dark {
+		filter: invert();
+	}
+	/* Fix link colors to be more accessible against a black background. */
+	a {
+		color: #00a1ff;
+	}
+}
+@media print, (prefers-color-scheme: light) {
+	html {
+		color: #000;
+		background-color: #fff;
+		--background-accent: #eee;
+	}
+}
+time {
+	font-variant: small-caps;
+}
+
+/* Editing Stylesheets: */
+body {
+	position: relative;
+}
+*[contenteditable=""]:focus {
+	outline: 0;
+}
+#editor-floater {
+	position: absolute;
+	right: 100%;
+	transform: translateY(-50%);
+	display: flex;
+	flex-direction: column;
+}
+p > img:only-child {
+	border: 3px solid red;
+}

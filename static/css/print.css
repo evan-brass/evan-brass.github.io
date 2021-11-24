@@ -1,0 +1,60 @@
+/* Two columns for printing. */
+html {
+	line-height: 1.5;
+	column-count: 2;
+	column-rule: 1px solid currentColor;
+	column-fill: balance;
+	column-gap: 3em;
+	font-family: unset;
+
+	tab-size: 2ch; /* Try to squash code samples in print. */
+}
+header {
+	column-span: all;
+}
+
+/* Removing body padding because the print dialog will add page margins. */
+body {
+	padding: 0;
+}
+
+/* Remove color from links - they can't be clicked on paper - and show the href. */
+a {
+	color: currentColor !important;
+}
+a::after {
+	content: " (" attr(href) ")";
+	word-break: break-all;
+}
+
+/* Hide everything except the main content */
+body > :not(main) {
+	display: none;
+}
+
+/* Unhide author */
+span[itemprop="author"] {
+	display: inline;
+}
+
+/* Adjust article property display */
+span[itemprop="author"]::before {
+	content: "By ";
+}
+time[itemprop="datePublished"]::before {
+	font-variant: normal;
+	content: "on ";
+}
+
+ul[itemprop="keywords"]:not(:empty)::before {
+	content: "Tagged in ";
+}
+ul[itemprop="keywords"] li:not(:first-of-type) + li:last-of-type::before {
+	content: ", and ";
+}
+ul[itemprop="keywords"] li:first-of-type + li:last-of-type::before {
+	content: " and ";
+}
+nav[is="blog-contents"] {
+	display: none;
+}

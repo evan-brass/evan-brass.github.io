@@ -8,6 +8,7 @@ html {
 	font-size: 16px;
 	orphans: 2;
 	widows: 2;
+	overflow-wrap: break-word;
 }
 pre {
 	background-color: inherit;
@@ -54,6 +55,15 @@ body > header {
 	display: flex;
 	align-items: baseline;
 	justify-content: space-between;
+}
+body > header {
+	letter-spacing: 0.2ch;
+}
+main > ol {
+	padding: unset;
+}
+main > ol p, main > ol h2 {
+	margin: 0;
 }
 header h1, header h2 {
 	margin: 0;
