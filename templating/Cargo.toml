@@ -1,0 +1,10 @@
+[package]
+name = "templating"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "templating.rs"
+
+[dependencies]
+templating-macro = { path = "../templating-macro" }

@@ -1,4 +1,4 @@
-use rocket_sync_db_pools::{rusqlite::{self, Row, Rows}};
+use rusqlite::{Row, Rows};
 use serde::Serialize;
 use chrono::NaiveDate;
 

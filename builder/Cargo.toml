@@ -1,0 +1,16 @@
+[package]
+name = "builder"
+version = "0.1.0"
+description = "Static site generator for my blog."
+edition = "2021"
+
+[[bin]]
+name = "builder"
+path = "main.rs"
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+rusqlite = { version = "0.25", features = ["chrono"] }
+chrono = { version = "0.4", features = ["serde", "std", "clock"] }
+serde = { version = "1", features = ["derive"] }
+templating = { path = "../templating/" }
