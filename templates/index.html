@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>{% block title %}Evan Brass{% endblock title %}</title>
+		<meta name="description" content="{% block description %}{% endblock description %}">
+		<style>{# Header Styles #}</style>
+		<link rel="preload" as="style" href="/css/main.css" onload="this.onload=null;this.rel='stylesheet'">
+		<link rel="stylesheet" media="print" href="/css/print.css">
+	</head>
+	<body>
+		<header>
+			<h1>Evan Brass</h1>
+			<nav>
+				<a href="/">Home</a>
+				<a href="/about/">About</a>
+				<a href="/blog/">Blog</a>
+			</nav>
+		</header>
+		<main>
+			{%- block main %}
+
+			{%- endblock main %}
+		</main>
+		<footer>
+			<a href="https://twitter.com/evan_brass">Twitter</a> and <a href="https://github.com/evan-brass">GitHub</a>
+		</footer>
+		<noscript>
+			<link rel="stylesheet" href="/css/main.css">
+		</noscript>
+	</body>
+</html>

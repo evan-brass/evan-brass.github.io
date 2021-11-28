@@ -46,12 +46,11 @@ impl Post {
 		while let Some(row) = rows.next()? {
 			let id: u32 = row.get("post_id")?;
 
-			if let Some(post) = ret.iter_mut().find(|p| id == p.id) {
-				if let Ok(tag) = Tag::try_from_row(row) {
-					post.tags.push(tag);
-				}
-			} else {
-				ret.push(Post::try_from_row(row)?);
+			match ret.last_mut() {
+				Some(post) if post.id == id => {
+					post.tags.push(Tag::try_from_row(row)?);
+				},
+				_ => { ret.push(Post::try_from_row(row)?); }
 			}
 		}
 

@@ -1,7 +1,13 @@
-[workspace]
+[package]
+name = "builder"
+version = "0.1.0"
+description = "Static site generator for my blog."
+edition = "2021"
 
-members = [
-	"builder",
-	"templating",
-	"templating-macro"
-]
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+rusqlite = { version = "0.25", features = ["chrono"] }
+chrono = { version = "0.4", features = ["serde", "std", "clock"] }
+serde = { version = "1", features = ["derive"] }
+notify = "4"
+tera = { version = "1", features = ["chrono"] }
