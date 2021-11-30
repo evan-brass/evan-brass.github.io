@@ -10,27 +10,21 @@ aside {
 	border-width: 1px 0;
 }
 a {
-	color: #005c92;
+	color: #5d72d8;
+}
+html {
+	color: #000;
+	background-color: #fff;
+	--background-accent: #eee;
 }
 @media (prefers-color-scheme: dark) {
 	html {
-		background-color: #000;
-		color: #fff;
+		background-color: #111;
+		color: #ccc;
 		--background-accent: #222;
 	}
-	img.invert-dark {
-		filter: invert();
-	}
-	/* Fix link colors to be more accessible against a black background. */
-	a {
-		color: #00a1ff;
-	}
-}
-@media print, (prefers-color-scheme: light) {
-	html {
-		color: #000;
-		background-color: #fff;
-		--background-accent: #eee;
+	img.auto-dark {
+		filter: invert() hue-rotate(180deg);
 	}
 }
 time {

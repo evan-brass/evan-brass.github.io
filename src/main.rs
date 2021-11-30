@@ -1,97 +1,19 @@
-use std::path::Path;
+use std::path::{PathBuf, Path};
 use std::fs::File;
 use std::error::Error;
 use std::sync::mpsc::channel;
 use std::time::Duration;
+use std::collections::HashMap;
+use std::collections::VecDeque;
 
+use chrono::NaiveDate;
 use rusqlite::Connection;
-use tera::{Tera, Context};
+use tera::{Tera, Context, Value};
 
-use notify::{Watcher, RecursiveMode, watcher};
+use notify::{Watcher, RecursiveMode, watcher, DebouncedEvent};
 
 mod post;
 use post::Post;
-
-// const HEADER_STYLES: &'static str = include_str!("../static/header-styles.css");
-
-// #[get("/")]
-// async fn index(db: BlogDB) -> Html<String> {
-// 	let posts = db.run(|conn| -> rusqlite::Result<Vec<Post>> {
-// 		let mut stmt = conn.prepare(r"SELECT * FROM posts
-// 			LEFT JOIN posts_tags ON post_id = posts_id
-// 			LEFT JOIN tags on tags_id = tag_id
-// 			ORDER BY post_published
-// 			;")?;
-// 		let posts = Post::distinct_from_rows(&mut stmt.query([])?)?;
-// 		Ok(posts)
-// 	}).await.unwrap();
-// 	Html(template!(
-// 		{header("Evan Brass", "His life and times.")}
-// r"			<ol>"
-// 			[posts.iter().map(|p| template!(
-// 				r#"<li>
-// 					<h2><a href=""# {uri!(single_post(&p.slug))} r#"">"# {p.title} r"</a></h2>
-// 					<p>" {p.description} r"</p>
-// 				</li>"))]
-// r#"			</ol>"#
-// 		{footer()}
-// 	).to_string())
-// }
-
-// #[get("/blog/<slug>")]
-// async fn single_post(slug: String, db: BlogDB) -> Option<Html<String>> {
-// 	let mut posts = db.run(move |conn| -> rusqlite::Result<Vec<Post>> {
-// 		let mut stmt = conn.prepare(r"SELECT * FROM posts
-// 		LEFT JOIN posts_tags ON post_id = posts_id
-// 		LEFT JOIN tags on tags_id = tag_id
-// 		WHERE post_slug = ?1
-// 		;").unwrap();
-// 		let posts = Post::distinct_from_rows(&mut stmt.query([slug])?)?;
-// 		Ok(posts)
-// 	}).await.unwrap();
-// 	if let Some(post) = posts.pop() {
-// 		Some(Html(template!(
-// 			{header(&post.title, &post.description)}
-// r#"			<article itemscope itemtype="https://schema.org/BlogPosting">
-// 				<header>
-// 					<!-- TODO: Social Media image
-// 					<img itemprop="image" src="" alt="">
-// 					-->
-// 					<h1 itemprop="headline">"# {post.title} r#"</h1>
-// 					<span itemprop="author">Evan Brass</span>"#
-// 					(move |fmt| {
-// 						if let Some(published) = post.published {
-// 							Display::fmt(&template!(
-// r#"					<time itemprop="datePublished" datetime=""# {published.format("%F")} r#"">"#
-// 						{published.format("%B %-d, %Y")}
-// 					"</time>"
-// 							), fmt)
-// 						} else {
-// 							Ok(())
-// 						}
-// 					})
-// r#"					<ul itemprop="keywords">"#
-// 					[post.tags.iter().map(|t| template!("<li>" {t.name} "</li>"))]
-// 				r#"</ul>
-// 					<nav is="blog-contents">
-// 					<!-- TODO -->
-// 					</nav>
-// 				</header>
-// 				<div itemprop="articleBody">"#
-// 					{post.content}
-// r#"				</div>
-// 			</article>"#
-// 			{footer()}
-// 		).to_string()))
-// 	} else {
-// 		None
-// 	}
-// }
-
-// #[get("/<file..>")]
-// async fn static_files(file: PathBuf) -> Option<NamedFile> {
-// 	NamedFile::open(Path::new("static/").join(file)).await.ok()
-// }
 
 fn get_file<B: AsRef<Path>, T: AsRef<Path>>(base: B, tail: T) -> Result<File, Box<dyn Error>> {
 	let mut dest_path = Path::new("public").join(base);
@@ -109,115 +31,103 @@ fn get_file<B: AsRef<Path>, T: AsRef<Path>>(base: B, tail: T) -> Result<File, Bo
 	Ok(File::create(dest_path)?)
 }
 
-// fn build_site(conn: &mut Connection) -> Result<(), Box<dyn Error>> {
-// 	// Link static files
-// 	// Output 404
-// 	// Output home index page
-// 	// Output tags index page
-// 	// Output tag pages
-// 	// Output rss
-// 	// Output gallery
-// 	let mut stmt = conn.prepare(r"
-// 		SELECT * FROM posts
-// 		LEFT JOIN posts_tags on post_id = posts_id
-// 		LEFT JOIN tags on tags_id = tag_id
-// 		ORDER BY post_published
-// 	;")?;
+fn copy_dir_contents(from: &Path, to: &Path) -> Result<(), Box<dyn Error>> {
+	let mut directories = VecDeque::new();
+	directories.push_back(PathBuf::from(from));
+	while let Some(p) = directories.pop_front() {
+		for entry in std::fs::read_dir(p)? {
+			let entry = entry?;
+			let ft = entry.file_type()?;
+			let path = entry.path();
+			let dest = to.join(path.strip_prefix(from).unwrap());
 
-// 	let posts = Post::distinct_from_rows(&mut stmt.query([])?)?;
-// 	let posts = &posts;
+			if ft.is_dir() {
+				std::fs::create_dir_all(dest)?;
+				directories.push_back(path);
+			} else if ft.is_file() {
+				std::fs::copy(
+					&path,
+					dest
+				)?;
+			}
+		}
+	}
 
-// 	// Output blog index page
-// 	let mut destination = get_file("blog", "index.html")?;
-// 	write!(&mut destination, "{}", template!(
-// 		{header("Blog | Evan Brass", "His life and times.")}
-// 		r"<ol>"
-// 			[posts.iter().map(|p| template!(
-// 				r#"<li>
-// 					<h2><a href="/blog/"# {p.slug} r#"">"# {p.title} r"</a></h2>
-// 					<p>" {p.description} r"</p>
-// 				</li>"))]
-// 		r#"</ol>"#
-// 		{footer()}
-// 	))?;
-
-// 	// Output post pages
-// 	for post in posts {
-// 		let mut destination = get_file("blog", &post.slug)?;
-
-// 		write!(&mut destination, "{}", template!({
-// 			header(&post.title, &post.description)}
-// 			r#"<article itemscope itemtype="https://schema.org/BlogPosting">
-// 				<header>
-// 					<!-- TODO: Social Media image
-// 					<img itemprop="image" src="" alt="">
-// 					-->
-// 					<h1 itemprop="headline">"# {post.title} r#"</h1>
-// 					<span itemprop="author">Evan Brass</span>"#
-// 					(move |fmt| {
-// 						if let Some(published) = post.published {
-// 							Display::fmt(&template!(
-// 								r#"<time itemprop="datePublished" datetime=""#
-// 									{published.format("%F")}
-// 								r#"">"#
-// 									{published.format("%B %-d, %Y")}
-// 								"</time>"
-// 							), fmt)
-// 						} else {
-// 							Ok(())
-// 						}
-// 					})
-// 					r#"<ul itemprop="keywords">"#
-// 						[post.tags.iter().map(|t| template!("<li>" {t.name} "</li>"))]
-// 					r#"</ul>
-// 					<nav is="blog-contents">
-// 					<!-- TODO -->
-// 					</nav>
-// 				</header>
-// 				<div itemprop="articleBody">"#
-// 					{post.content}
-// 				r#"</div>
-// 			</article>"#
-// 			{footer()}
-// 		))?;
-// 	}
-
-// 	Ok(())
-// }
+	Ok(())
+}
 
 fn main() -> Result<(), Box<dyn Error>> {
+	let db_loc = Path::new("blog.sqlite");
+	let templates_loc = Path::new("templates");
+
 	let (tx, rx) = channel();
 	let mut watcher = watcher(tx, Duration::from_secs(5))?;
 
-	let conn = Connection::open("blog.sqlite")?;
-	watcher.watch("blog.sqlite", RecursiveMode::NonRecursive)?;
-
-	// TODO: Load templates and watch the template directory.
-	let tera = Tera::new("templates/**/*.html")?;
-	watcher.watch("templates", RecursiveMode::Recursive)?;
-
-	let mut stmt = conn.prepare(r"
-		SELECT * FROM posts
-		LEFT JOIN posts_tags on post_id = posts_id
-		LEFT JOIN tags on tags_id = tag_id
-		ORDER BY post_published
-	;")?;
-	let posts = Post::distinct_from_rows(&mut stmt.query([])?)?;
-	let posts = &posts;
-
-	// Output the individual post pages
-	for post in posts {
-		let mut context = Context::new();
-		context.insert("post", post);
-		tera.render_to(
-			"single.html",
-			&context,
-			get_file("blog", &post.slug)?
+	let conn = Connection::open(db_loc)?;
+	watcher.watch(db_loc, RecursiveMode::NonRecursive)?;
+	
+	let mut tera = Tera::new("templates/**/*.html")?;
+	watcher.watch(templates_loc, RecursiveMode::Recursive)?;
+	tera.register_filter("fmtdate", |v: &Value, args: &HashMap<String, Value>| {
+		let s = v.as_str().ok_or("fmtdate can only be called on string values.")?;
+		let fmt = args.get("fmt").ok_or("must provide a fmt argument which is the format string.")?.as_str().ok_or("fmt argument must be a string")?;
+		let d = NaiveDate::parse_from_str(s, "%F").map_err(|e|
+			tera::Error::chain("Failed to parse datetime", e)
 		)?;
-	}
+		Ok(d.format(fmt).to_string().into())
+	});
+	tera.register_filter("includestatic", |v: &Value, _args: &HashMap<String, Value>| {
+		let p = v.as_str().ok_or("value must be a string")?;
+		let s = std::fs::read_to_string(Path::new("static").join(p))?;
+		Ok(s.into())
+	});
 
 	loop {
-		let ev = rx.recv()?;
-		println!("{:?}", ev);
+		// Copy the static files over.
+		copy_dir_contents(Path::new("static"), Path::new("public"))?;
+
+		// Build the site:
+		let mut stmt = conn.prepare(r"
+			SELECT * FROM posts
+			LEFT JOIN posts_tags on post_id = posts_id
+			LEFT JOIN tags on tags_id = tag_id
+			ORDER BY post_published
+		;")?;
+		let posts = Post::distinct_from_rows(&mut stmt.query([])?)?;
+		let posts = &posts;
+
+		// Output the individual post pages
+		for post in posts {
+			let mut context = Context::new();
+			context.insert("post", post);
+			tera.render_to(
+				"single.html",
+				&context,
+				get_file("blog", &post.slug)?
+			)?;
+		}
+
+		// Output the blog index
+		let mut context = Context::new();
+		context.insert("posts", posts);
+		tera.render_to(
+			"post_index.html",
+			&context,
+			get_file("blog", "index.html")?
+		)?;
+
+		println!("Site built.");
+		// Wait until we need to rebuild the site again
+		loop {
+			let e = rx.recv()?;
+			if let DebouncedEvent::Write(p) = e {
+				println!("{:?}", p);
+				if p.starts_with(templates_loc) {
+					println!("Templates changed");
+					tera.full_reload()?;
+				}
+				break;
+			}
+		}
 	}
 }

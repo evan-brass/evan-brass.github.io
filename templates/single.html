@@ -11,9 +11,8 @@
 		-->
 		<h1 itemprop="headline">{{post.title | safe}}</h1>
 		<span itemprop="author">Evan Brass</span>
-		{# TODO: "%F" for the attribute and "%B %-d, %Y" for the text #}
 		{% if post.published %}
-		<time itemprop="datePublished" datetime="">{{post.published}}</time>
+		<time itemprop="datePublished" datetime="{{post.published | fmtdate(fmt = "%F")}}">{{post.published | fmtdate(fmt = "%B %-d, %Y")}}</time>
 		{% endif %}
 		<ul itemprop="keywords">
 			{% for tag in post.tags %}<li>{{tag.name}}</li>{% endfor %}
