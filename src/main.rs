@@ -19,7 +19,7 @@ use notify::{Watcher, RecursiveMode, watcher, DebouncedEvent};
 
 mod post;
 mod schema;
-use post::Post;
+// use post::Post;
 
 fn get_file<B: AsRef<Path>, T: AsRef<Path>>(base: B, tail: T) -> Result<File, Box<dyn Error>> {
 	let mut dest_path = Path::new("public").join(base);
@@ -103,7 +103,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 	let (tx, rx) = channel();
 	let mut watcher = watcher(tx, Duration::from_secs(5))?;
 
-	let conn = Connection::open(db_loc)?;
+	let mut conn = Connection::open(db_loc)?;
 	conn.create_scalar_function(
 		"strip_tags",
 		1,
@@ -144,36 +144,36 @@ fn main() -> Result<(), Box<dyn Error>> {
 		copy_dir_contents(Path::new("static"), Path::new("public"))?;
 
 		// Build the site:
-		let mut stmt = conn.prepare_cached(r"
-			SELECT *, slugify(strip_tags(posts.title)) as post_slug FROM posts
-			ORDER BY posts.published
-		;")?;
-		let mut posts = Vec::new();
-		for res in stmt.query_map([], Post::try_from_row)? {
-			posts.push(res?);
-		}
-
-		// Output the individual post pages
-		for post in posts.iter() {
-			let mut context = Context::new();
-			context.insert("post", post);
-			tera.render_to(
-				"single.html",
-				&context,
-				get_file("blog", &post.slug)?
-			)?;
-		}
-
-		// Output the blog index
 		let mut context = Context::new();
-		context.insert("posts", &posts);
+		attach_query(&mut conn, r"
+			SELECT title, description, slugify(strip_tags(posts.title)) as slug FROM posts
+			ORDER BY posts.published
+		;", [], &mut context, "posts")?;
 		tera.render_to(
 			"post_index.html",
 			&context,
 			get_file("blog", "index.html")?
 		)?;
 
-		stmt.discard();
+		// Output the individual post pages
+		// for post in posts.iter() {
+		// 	let mut context = Context::new();
+		// 	context.insert("post", post);
+		// 	tera.render_to(
+		// 		"single.html",
+		// 		&context,
+		// 		get_file("blog", &post.slug)?
+		// 	)?;
+		// }
+
+		// Output the blog index
+		// let mut context = Context::new();
+		// context.insert("posts", &posts);
+		// tera.render_to(
+		// 	"post_index.html",
+		// 	&context,
+		// 	get_file("blog", "index.html")?
+		// )?;
 
 		println!("Site built.");
 		// Wait until we need to rebuild the site again
