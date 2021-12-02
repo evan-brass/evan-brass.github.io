@@ -1,3 +1,4 @@
+#![feature(option_result_contains)]
 use std::path::{PathBuf, Path};
 use std::fs::File;
 use std::error::Error;
@@ -7,12 +8,17 @@ use std::collections::HashMap;
 use std::collections::VecDeque;
 
 use chrono::NaiveDate;
-use rusqlite::Connection;
+use rusqlite::{Connection, Params};
+use rusqlite::types::FromSql;
 use tera::{Tera, Context, Value};
+use voca_rs::strip::strip_tags;
+use voca_rs::manipulate::slugify;
+use rusqlite::functions::FunctionFlags;
 
 use notify::{Watcher, RecursiveMode, watcher, DebouncedEvent};
 
 mod post;
+mod schema;
 use post::Post;
 
 fn get_file<B: AsRef<Path>, T: AsRef<Path>>(base: B, tail: T) -> Result<File, Box<dyn Error>> {
@@ -56,6 +62,40 @@ fn copy_dir_contents(from: &Path, to: &Path) -> Result<(), Box<dyn Error>> {
 	Ok(())
 }
 
+fn attach_query<P: Params>(
+	conn: &mut Connection,
+	sql: &str,
+	params: P,
+	ctx: &mut Context,
+	key: &str
+) -> Result<(), Box<dyn Error>> {
+	let tx = conn.transaction()?;
+	let mut stmt = tx.prepare_cached(sql)?;
+	let columns_a = stmt.columns();
+	let columns: Vec<(String, Option<String>)> = columns_a.iter().map(|c| 
+		(c.name().to_owned(), c.decl_type().map(|s| s.to_owned()))
+	).collect();
+	let mut rows = stmt.query(params)?;
+	let mut ret = Vec::new();
+	while let Some(row) = rows.next()? {
+		let mut v: HashMap<String, Value> = HashMap::new();
+		for (i, (key, decl_type)) in columns.iter().enumerate() {
+			let vref = row.get_ref(i)?;
+			v.insert(key.clone(), if decl_type.contains(&"json") {
+				serde_json::from_str(vref.as_str()?)?
+			} else {
+				Value::column_result(vref)?
+			});
+		}
+		ret.push(v);
+	}
+	drop(rows);
+	stmt.discard();
+	tx.finish()?;
+	ctx.insert(key, &ret);
+	Ok(())
+}
+
 fn main() -> Result<(), Box<dyn Error>> {
 	let db_loc = Path::new("blog.sqlite");
 	let templates_loc = Path::new("templates");
@@ -64,6 +104,23 @@ fn main() -> Result<(), Box<dyn Error>> {
 	let mut watcher = watcher(tx, Duration::from_secs(5))?;
 
 	let conn = Connection::open(db_loc)?;
+	conn.create_scalar_function(
+		"strip_tags",
+		1,
+		FunctionFlags::SQLITE_DETERMINISTIC | FunctionFlags::SQLITE_UTF8,
+		|context| -> rusqlite::Result<String> {
+			Ok(strip_tags(context.get_raw(0).as_str()?))
+		}
+	)?;
+	conn.create_scalar_function(
+		"slugify",
+		1,
+		FunctionFlags::SQLITE_DETERMINISTIC | FunctionFlags::SQLITE_UTF8,
+		|context| -> rusqlite::Result<String> {
+			Ok(slugify(context.get_raw(0).as_str()?))
+		}
+	)?;
+	schema::schema(&conn)?;
 	watcher.watch(db_loc, RecursiveMode::NonRecursive)?;
 	
 	let mut tera = Tera::new("templates/**/*.html")?;
@@ -87,17 +144,17 @@ fn main() -> Result<(), Box<dyn Error>> {
 		copy_dir_contents(Path::new("static"), Path::new("public"))?;
 
 		// Build the site:
-		let mut stmt = conn.prepare(r"
-			SELECT * FROM posts
-			LEFT JOIN posts_tags on post_id = posts_id
-			LEFT JOIN tags on tags_id = tag_id
-			ORDER BY post_published
+		let mut stmt = conn.prepare_cached(r"
+			SELECT *, slugify(strip_tags(posts.title)) as post_slug FROM posts
+			ORDER BY posts.published
 		;")?;
-		let posts = Post::distinct_from_rows(&mut stmt.query([])?)?;
-		let posts = &posts;
+		let mut posts = Vec::new();
+		for res in stmt.query_map([], Post::try_from_row)? {
+			posts.push(res?);
+		}
 
 		// Output the individual post pages
-		for post in posts {
+		for post in posts.iter() {
 			let mut context = Context::new();
 			context.insert("post", post);
 			tera.render_to(
@@ -109,12 +166,14 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 		// Output the blog index
 		let mut context = Context::new();
-		context.insert("posts", posts);
+		context.insert("posts", &posts);
 		tera.render_to(
 			"post_index.html",
 			&context,
 			get_file("blog", "index.html")?
 		)?;
+
+		stmt.discard();
 
 		println!("Site built.");
 		// Wait until we need to rebuild the site again

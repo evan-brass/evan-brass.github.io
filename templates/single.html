@@ -15,7 +15,7 @@
 		<time itemprop="datePublished" datetime="{{post.published | fmtdate(fmt = "%F")}}">{{post.published | fmtdate(fmt = "%B %-d, %Y")}}</time>
 		{% endif %}
 		<ul itemprop="keywords">
-			{% for tag in post.tags %}<li>{{tag.name}}</li>{% endfor %}
+			{% for keyword in post.keywords %}<li>{{keyword}}</li>{% endfor %}
 		</ul>
 		<nav is="blog-contents">
 		<!-- TODO -->
