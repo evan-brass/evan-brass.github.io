@@ -5,6 +5,7 @@ description = "Static site generator for my blog."
 edition = "2021"
 
 [dependencies]
+rocket = "0.5.0-rc.1"
 tokio = { version = "1", features = ["full"] }
 rusqlite = { version = "0.25", features = [
 	"chrono",
@@ -13,6 +14,7 @@ rusqlite = { version = "0.25", features = [
 	"serde_json",
 	"column_decltype"
 ] }
+lazy_static = "1.4"
 chrono = { version = "0.4", features = ["serde", "std", "clock"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
