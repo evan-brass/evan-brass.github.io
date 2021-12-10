@@ -1,0 +1,29 @@
+{{#*inline "title"}}{{title}}{{/inline}}
+
+{{#*inline "description"}}{{description}}{{/inline}}
+
+{{#*inline "main"}}
+<article itemscope itemtype="https://schema.org/BlogPosting">
+	<header>
+		<!-- TODO: Social Media image
+		<img itemprop="image" src="" alt="">
+		-->
+		<h1 itemprop="headline">{{title}}</h1>
+		<span itemprop="author">Evan Brass</span>
+		{{#if published }}
+		<time itemprop="datePublished" datetime="{{published}}">{{fmtdate published "%B %-d, %Y"}}</time>
+		{{/if}}
+		<ul itemprop="keywords">
+			{{#each keywords}}<li>{{this}}</li>{{/each}}
+		</ul>
+		<nav is="blog-contents">
+		<!-- TODO -->
+		</nav>
+	</header>
+	<div itemprop="articleBody">
+		{{content}}
+	</div>
+</article>
+{{/inline}}
+
+{{> index}}

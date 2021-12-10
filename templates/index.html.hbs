@@ -3,9 +3,13 @@
 	<head>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<title>{% block title %}Evan Brass{% endblock title %}</title>
-		<meta name="description" content="{% block description %}{% endblock description %}">
-		<style>{{ "css/header-styles.css" | includestatic | safe }}</style>
+		<title>{{#> title ~}}
+			Evan Brass
+		{{~/title}}</title>
+		<meta name="description" content="{{#> description ~}}
+			A programmer with chronic second system syndrome.
+		{{~/description}}">
+		<style>{{ includestatic "css/header-styles.css" }}</style>
 		<link rel="preload" as="style" href="/css/main.css" onload="this.onload=null;this.rel='stylesheet'">
 		<link rel="stylesheet" media="print" href="/css/print.css">
 	</head>
@@ -19,9 +23,9 @@
 			</nav>
 		</header>
 		<main>
-			{%- block main %}
+			{{#> main}}
 
-			{%- endblock main %}
+			{{/main}}
 		</main>
 		<footer>
 			<a href="https://twitter.com/evan_brass">Twitter</a> and <a href="https://github.com/evan-brass">GitHub</a>

@@ -1,0 +1,16 @@
+{{#*inline "title"}}Blog{{/inline}}
+
+{{#*inline "description"}}TODO{{/inline}}
+
+{{#*inline "main"}}
+<ol>
+	{{#each posts}}
+		<li>
+			<h2><a href="/blog/{{slug}}">{{title}}</a></h2>
+			<p>{{opening}}</p>
+		</li>
+	{{/each}}
+</ol>
+{{/inline}}
+
+{{> index}}
