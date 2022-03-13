@@ -8,7 +8,7 @@
 		<script>
 			const add_handler = document.createElement('button');
 			add_handler.innerText = 'Add Protocol Handler';
-			document.appendChild(add_handler);
+			document.body.appendChild(add_handler);
 			add_handler.onclick = () => {
 				let endpoint = new URL(window.location);
 				endpoint.searchParams.append('uri', '');
