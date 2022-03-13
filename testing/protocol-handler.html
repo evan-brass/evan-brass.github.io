@@ -27,8 +27,8 @@
 					message_port: channel.port2
 				}, '*', [channel.port2]);
 				channel.port1.onmessage = ({ data, origin, source }) => {
-					console.log(origin, data);
-					source.postMessage({ ack: data });
+					console.log(origin, source, data);
+					channel.port1.postMessage({ ack: data });
 				};
 			}
 		</script>
