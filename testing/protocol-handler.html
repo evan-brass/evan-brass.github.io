@@ -21,7 +21,7 @@
 			};
 
 			const url = new URL(window.location);
-			if (window.location.searchParams.has('uri')) {
+			if (url.searchParams.has('uri')) {
 				const channel = new MessageChannel();
 				window.parent.postMessage({
 					message_port: channel.port2
